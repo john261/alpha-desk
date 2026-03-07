@@ -90,6 +90,7 @@ export default async function HomePage() {
         .footer-links { display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
         .footer-link  { font-size:8px; letter-spacing:2px; color:#334155; text-transform:uppercase; text-decoration:none; transition:color .2s; }
         .footer-link:hover { color:#c9a227; }
+        .footer-divider { height:1px; background:#1e293b; margin:8px 0; }
         @media (max-width:900px) {
           .kpi-wrap { grid-template-columns:repeat(2,1fr); }
           .kpi-cell:nth-child(2) { border-right:none; }
@@ -170,6 +171,10 @@ export default async function HomePage() {
           <div className="footer-links">
             <a href="/" className="footer-link">Reports</a>
             <a href="/login" className="footer-link">Admin</a>
+            <div className="footer-divider" />
+            <a href="/impressum" className="footer-link">Impressum</a>
+            <a href="/datenschutz" className="footer-link">Datenschutz</a>
+            <a href="/agb" className="footer-link">AGB</a>
           </div>
         </div>
       </footer>
