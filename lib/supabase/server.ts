@@ -1,12 +1,10 @@
 // lib/supabase/server.ts
-// ─── Server-side Supabase client (reads cookies for session) ───
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { Database } from './types'
 
 export function createClient() {
   const cookieStore = cookies()
-
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -15,7 +13,7 @@ export function createClient() {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
@@ -29,8 +27,6 @@ export function createClient() {
   )
 }
 
-// ─── Admin client using Service Role Key (server-only!) ───
-// NEVER import this in client components
 export function createAdminClient() {
   const { createClient: createSupabaseClient } = require('@supabase/supabase-js')
   return createSupabaseClient<Database>(
