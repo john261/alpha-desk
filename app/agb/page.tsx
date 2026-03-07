@@ -58,9 +58,9 @@ export default function AgbPage() {
           (nachfolgend „Plattform"), betrieben von:
         </p>
         <p>
-          <span className="placeholder">[Stephan Gilger]</span><br />
-          <span className="placeholder">[Stoeberlstr. 93]</span><br />
-          <span className="placeholder">[80686 München]</span>
+          <span className="placeholder">Stephan Gilger</span><br />
+          <span className="placeholder">Stoeberlstr. 93</span><br />
+          <span className="placeholder">80686 München</span>
         </p>
 
         <div className="divider" />
@@ -143,7 +143,7 @@ export default function AgbPage() {
         <h2>§ 9 Kontakt</h2>
         <p>
           Bei Fragen zu diesen Nutzungsbedingungen wenden Sie sich an:{' '}
-          <a href="mailto:"><span className="placeholder">[Stephangilger@web.de]</span></a>
+          <a href="mailto:"><span className="placeholder">Stephangilger@web.de</span></a>
         </p>
 
         <p style={{ marginTop: 32, fontSize: 11, color: '#94a3b8' }}>
