@@ -1,11 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 
-const RATING_COLOR: Record<string, { bg: string; text: string; border: string }> = {
-  BUY:   { bg: '#f0faf5', text: '#1a8a54', border: '#b8e8d0' },
-  HOLD:  { bg: '#fffbf0', text: '#9a6e00', border: '#f0d880' },
-  SELL:  { bg: '#fff5f5', text: '#c0392b', border: '#f5c0bc' },
-  WATCH: { bg: '#f5f5f5', text: '#666',    border: '#ddd'    },
-}
+const RATING = {
+  BUY:   { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0', dark: '#15803d', icon: '↑' },
+  HOLD:  { bg: '#fffbeb', text: '#d97706', border: '#fde68a', dark: '#b45309', icon: '→' },
+  SELL:  { bg: '#fef2f2', text: '#dc2626', border: '#fecaca', dark: '#b91c1c', icon: '↓' },
+  WATCH: { bg: '#f8fafc', text: '#64748b', border: '#e2e8f0', dark: '#475569', icon: '◎' },
+} as const
 
 export const revalidate = 60
 
@@ -25,6 +25,7 @@ export default async function HomePage() {
     return `${supabaseUrl}/storage/v1/object/public/analyses-pdfs/${path}`
   }
 
+  const total     = analyses?.length ?? 0
   const buyCount  = analyses?.filter(a => a.rating === 'BUY').length  ?? 0
   const holdCount = analyses?.filter(a => a.rating === 'HOLD').length ?? 0
   const sellCount = analyses?.filter(a => a.rating === 'SELL').length ?? 0
@@ -32,236 +33,213 @@ export default async function HomePage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Mono:wght@300;400;500&display=swap');
 
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
         html { scroll-behavior:smooth; }
-        body {
-          background: #f8f6f2;
-          color: #1a1a1a;
-          font-family: 'DM Mono', monospace;
-          -webkit-font-smoothing: antialiased;
-        }
+        body { background:#f1f5f9; color:#0f172a; font-family:'DM Mono',monospace; -webkit-font-smoothing:antialiased; }
 
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #f0ede8; }
-        ::-webkit-scrollbar-thumb { background: #d4c89a; border-radius: 2px; }
+        ::-webkit-scrollbar { width:4px; }
+        ::-webkit-scrollbar-track { background:#e2e8f0; }
+        ::-webkit-scrollbar-thumb { background:#c9a227; border-radius:2px; }
 
-        @keyframes fadeUp {
-          from { opacity:0; transform:translateY(12px); }
-          to   { opacity:1; transform:translateY(0); }
-        }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
 
-        .nav-link {
-          font-size: 9px; letter-spacing: 3px; color: #999;
-          text-transform: uppercase; text-decoration: none;
-          padding: 7px 14px; border: 1px solid #e0dbd0;
-          transition: all .2s;
-        }
-        .nav-link:hover { color: #b8962e; border-color: #d4c070; background: #fffdf5; }
+        /* NAV */
+        .nav { background:#0f172a; border-bottom:3px solid #c9a227; position:sticky; top:0; z-index:100; }
+        .nav-inner { max-width:1200px; margin:0 auto; padding:0 32px; height:64px; display:flex; align-items:center; justify-content:space-between; }
+        .nav-logo { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:700; color:#fff; letter-spacing:-0.5px; }
+        .nav-logo span { color:#c9a227; }
+        .nav-sub { font-size:8px; letter-spacing:4px; color:#94a3b8; text-transform:uppercase; margin-top:2px; }
+        .nav-admin { font-size:9px; letter-spacing:3px; color:#64748b; text-transform:uppercase; text-decoration:none; padding:8px 16px; border:1px solid #1e293b; transition:all .2s; }
+        .nav-admin:hover { color:#c9a227; border-color:#c9a227; }
 
-        .stat-box {
-          flex: 1 1 120px;
-          background: #fff;
-          border: 1px solid #e8e3d8;
-          padding: 20px 24px;
-          transition: box-shadow .2s;
-        }
-        .stat-box:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        /* HERO */
+        .hero { background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%); padding:40px 32px 36px; border-bottom:1px solid #c9a22730; }
+        .hero-inner { max-width:1200px; margin:0 auto; }
+        .hero-eyebrow { font-size:8px; letter-spacing:6px; color:#c9a227; text-transform:uppercase; margin-bottom:12px; }
+        .hero-title { font-family:'Cormorant Garamond',serif; font-size:clamp(32px,5vw,52px); font-weight:400; color:#f8fafc; line-height:1.05; margin-bottom:6px; }
+        .hero-title em { color:#c9a227; font-style:italic; }
+        .hero-desc { font-size:10px; color:#64748b; letter-spacing:2px; text-transform:uppercase; margin-bottom:28px; }
+        .hero-line { width:48px; height:2px; background:linear-gradient(90deg,#c9a227,#f0d870); margin-bottom:28px; }
 
-        .card {
-          background: #fff;
-          border: 1px solid #e8e3d8;
-          padding: 28px;
-          transition: box-shadow .25s, transform .25s, border-color .25s;
-          animation: fadeUp .4s ease both;
-          position: relative;
-        }
-        .card:hover {
-          box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-          transform: translateY(-2px);
-          border-color: #d4c070;
-        }
+        /* KPI */
+        .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+        .kpi-card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); padding:20px 24px; transition:all .2s; cursor:default; }
+        .kpi-card:hover { background:rgba(255,255,255,0.08); border-color:rgba(201,162,39,0.3); }
+        .kpi-icon { font-size:18px; margin-bottom:10px; }
+        .kpi-num { font-family:'Cormorant Garamond',serif; font-size:44px; font-weight:600; line-height:1; margin-bottom:6px; }
+        .kpi-label { font-size:8px; letter-spacing:3px; color:#64748b; text-transform:uppercase; }
 
-        .pdf-btn {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 10px 18px;
-          background: #fffbf0;
-          border: 1px solid #d4c070;
-          color: #9a7820;
-          font-family: 'DM Mono', monospace;
-          font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
-          text-decoration: none;
-          transition: all .2s;
-        }
-        .pdf-btn:hover { background: #fff8e0; border-color: #b8962e; color: #7a5c10; }
+        /* MAIN */
+        .main { max-width:1200px; margin:0 auto; padding:32px 32px 80px; }
+        .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #e2e8f0; }
+        .section-title { font-size:8px; letter-spacing:4px; color:#94a3b8; text-transform:uppercase; }
+        .section-count { font-size:8px; letter-spacing:2px; color:#c9a227; text-transform:uppercase; }
 
-        .tag {
-          font-size: 8px; letter-spacing: 2px; color: #999;
-          border: 1px solid #e8e3d8; padding: 4px 10px;
-          text-transform: uppercase; background: #faf9f6;
-        }
+        /* CARDS */
+        .cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:20px; }
+        .card { background:#fff; border:1px solid #e2e8f0; border-radius:2px; overflow:hidden; animation:fadeUp .4s ease both; transition:box-shadow .25s, transform .25s, border-color .25s; }
+        .card:hover { box-shadow:0 12px 40px rgba(0,0,0,0.1); transform:translateY(-3px); border-color:#c9a227; }
+        .card-top { padding:24px 24px 0; }
+        .card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+        .card-ticker { font-size:13px; letter-spacing:4px; font-weight:500; color:#0f172a; text-transform:uppercase; }
+        .card-sector { font-size:8px; letter-spacing:2px; color:#94a3b8; text-transform:uppercase; margin-top:3px; }
+        .card-badge { padding:5px 14px; font-size:9px; letter-spacing:3px; font-weight:500; text-transform:uppercase; display:flex; align-items:center; gap:5px; }
+        .card-title { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:400; color:#0f172a; line-height:1.3; margin-bottom:10px; }
+        .card-desc { font-size:11px; color:#94a3b8; line-height:1.8; margin-bottom:16px; }
 
-        .price-box {
-          padding: 16px 20px;
-          background: #faf9f6;
-          border: 1px solid #ede8de;
-        }
+        /* PRICE BLOCK */
+        .price-block { display:grid; grid-template-columns:repeat(3,1fr); background:#f8fafc; border-top:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; }
+        .price-cell { padding:14px 16px; border-right:1px solid #e2e8f0; }
+        .price-cell:last-child { border-right:none; }
+        .price-label { font-size:7px; letter-spacing:2px; color:#94a3b8; text-transform:uppercase; margin-bottom:6px; }
+        .price-value { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:600; color:#0f172a; line-height:1; }
+        .price-value.gold { color:#c9a227; }
+        .price-value.up   { color:#16a34a; }
+        .price-value.down { color:#dc2626; }
 
-        /* Mobile */
-        @media (max-width: 768px) {
-          .hero-title { font-size: 36px !important; }
-          .nav-inner { padding: 0 20px !important; }
-          .hero-inner { padding: 48px 20px 36px !important; }
-          .main-inner { padding: 28px 16px !important; }
-          .stats-row  { gap: 2px !important; }
-          .stat-box   { padding: 16px !important; }
-          .grid       { grid-template-columns: 1fr !important; gap: 12px !important; }
-          .card       { padding: 20px !important; }
-          .footer-inner { padding: 24px 20px !important; flex-direction: column !important; gap: 8px !important; text-align: center !important; }
-        }
+        /* CARD FOOTER */
+        .card-footer { padding:16px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        .open-btn { display:inline-flex; align-items:center; gap:8px; padding:10px 20px; background:#0f172a; color:#fff; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; text-decoration:none; border:none; transition:all .2s; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+        .open-btn:hover { background:#c9a227; color:#0f172a; box-shadow:0 4px 16px rgba(201,162,39,0.3); }
+        .card-meta { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+        .meta-tag { font-size:8px; letter-spacing:1px; color:#94a3b8; padding:4px 8px; background:#f8fafc; border:1px solid #e2e8f0; text-transform:uppercase; }
+        .meta-date { font-size:9px; color:#cbd5e1; letter-spacing:1px; }
 
-        @media (max-width: 480px) {
-          .hero-title { font-size: 28px !important; }
-          .price-grid { grid-template-columns: 1fr !important; }
+        /* EMPTY */
+        .empty { text-align:center; padding:80px 0; color:#cbd5e1; font-size:11px; letter-spacing:3px; text-transform:uppercase; }
+
+        /* FOOTER */
+        .footer { background:#0f172a; border-top:3px solid #c9a227; }
+        .footer-inner { max-width:1200px; margin:0 auto; padding:28px 32px; display:flex; justify-content:space-between; align-items:center; }
+        .footer-logo { font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:700; color:#fff; }
+        .footer-logo span { color:#c9a227; }
+        .footer-copy { font-size:8px; letter-spacing:2px; color:#334155; text-transform:uppercase; }
+
+        /* RESPONSIVE */
+        @media (max-width:900px) {
+          .kpi-grid { grid-template-columns:repeat(2,1fr); }
+        }
+        @media (max-width:640px) {
+          .nav-inner { padding:0 16px; }
+          .nav-sub { display:none; }
+          .hero { padding:28px 16px 24px; }
+          .hero-title { font-size:28px; }
+          .kpi-grid { grid-template-columns:repeat(2,1fr); gap:6px; }
+          .kpi-num { font-size:32px; }
+          .kpi-card { padding:14px 16px; }
+          .main { padding:20px 16px 60px; }
+          .cards-grid { grid-template-columns:1fr; gap:12px; }
+          .price-block { grid-template-columns:1fr 1fr; }
+          .price-cell:nth-child(3) { grid-column:1/-1; border-top:1px solid #e2e8f0; border-right:none; }
+          .card-footer { flex-direction:column; align-items:flex-start; }
+          .footer-inner { flex-direction:column; gap:8px; text-align:center; padding:20px 16px; }
+        }
+        @media (max-width:400px) {
+          .kpi-grid { grid-template-columns:1fr 1fr; }
+          .hero-title { font-size:24px; }
         }
       `}</style>
 
-      {/* Nav */}
-      <nav style={{ background: '#fff', borderBottom: '1px solid #e8e3d8', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div className="nav-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 48px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 600, color: '#1a1a1a', letterSpacing: -0.5 }}>
-              Alpha Desk
-            </div>
-            <div style={{ width: 1, height: 16, background: '#e0dbd0' }} />
-            <div style={{ fontSize: 8, letterSpacing: 4, color: '#bbb', textTransform: 'uppercase' }}>
-              Research
-            </div>
+      {/* NAV */}
+      <nav className="nav">
+        <div className="nav-inner">
+          <div>
+            <div className="nav-logo">Alpha<span>Desk</span></div>
+            <div className="nav-sub">Institutional Research Platform</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ fontSize: 8, letterSpacing: 2, color: '#ccc', textTransform: 'uppercase' }}>
-              {new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
-            </div>
-            <a href="/login" className="nav-link">Admin</a>
-          </div>
+          <a href="/login" className="nav-admin">Admin ↗</a>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section style={{ background: '#fff', borderBottom: '1px solid #e8e3d8' }}>
-        <div className="hero-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 48px 48px' }}>
-          <div style={{ fontSize: 8, letterSpacing: 6, color: '#bbb', textTransform: 'uppercase', marginBottom: 20 }}>
-            — Institutional Equity Research
-          </div>
-          <h1 className="hero-title" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 56, fontWeight: 400, color: '#1a1a1a', lineHeight: 1.05, marginBottom: 8 }}>
+      {/* HERO */}
+      <section className="hero">
+        <div className="hero-inner">
+          <div className="hero-eyebrow">— Institutional Equity Research</div>
+          <h1 className="hero-title">
             Equity Analysis &{' '}
-            <em style={{ color: '#b8962e', fontStyle: 'italic' }}>Market Intelligence</em>
+            <em>Market Intelligence</em>
           </h1>
-          <div style={{ width: 60, height: 2, background: 'linear-gradient(90deg,#d4c070,#f0e090)', marginTop: 24, marginBottom: 36 }} />
+          <div className="hero-desc">Professional research · Independent analysis</div>
+          <div className="hero-line" />
 
-          {/* Stats */}
-          <div className="stats-row" style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {/* KPI */}
+          <div className="kpi-grid">
             {[
-              { label: 'Total Reports', value: analyses?.length ?? 0, color: '#1a1a1a' },
-              { label: 'Buy',           value: buyCount,              color: '#1a8a54'  },
-              { label: 'Hold',          value: holdCount,             color: '#9a6e00'  },
-              { label: 'Sell',          value: sellCount,             color: '#c0392b'  },
-            ].map(s => (
-              <div key={s.label} className="stat-box">
-                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 36, fontWeight: 400, color: s.color, lineHeight: 1 }}>
-                  {s.value}
-                </div>
-                <div style={{ fontSize: 8, letterSpacing: 3, color: '#aaa', textTransform: 'uppercase', marginTop: 6 }}>
-                  {s.label}
-                </div>
+              { icon: '📊', num: total,     label: 'Total Reports', color: '#f8fafc'  },
+              { icon: '📈', num: buyCount,  label: 'Buy Ratings',   color: '#4ade80'  },
+              { icon: '➡️', num: holdCount, label: 'Hold Ratings',  color: '#fbbf24'  },
+              { icon: '📉', num: sellCount, label: 'Sell Ratings',  color: '#f87171'  },
+            ].map(k => (
+              <div key={k.label} className="kpi-card">
+                <div className="kpi-icon">{k.icon}</div>
+                <div className="kpi-num" style={{ color: k.color }}>{k.num}</div>
+                <div className="kpi-label">{k.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Grid */}
-      <main className="main-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 48px 80px' }}>
-        <div style={{ fontSize: 8, letterSpacing: 4, color: '#bbb', textTransform: 'uppercase', marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid #ede8de' }}>
-          {analyses?.length ?? 0} Published Report{analyses?.length !== 1 ? 's' : ''}
+      {/* MAIN */}
+      <main className="main">
+        <div className="section-header">
+          <div className="section-title">Published Reports</div>
+          <div className="section-count">{total} Report{total !== 1 ? 's' : ''} available</div>
         </div>
 
         {!analyses || analyses.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: '#ccc', fontSize: 12, letterSpacing: 2, textTransform: 'uppercase' }}>
-            Keine Analysen verfügbar
-          </div>
+          <div className="empty">Keine Analysen verfügbar</div>
         ) : (
-          <div className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+          <div className="cards-grid">
             {analyses.map((a, i) => {
-              const rc = RATING_COLOR[a.rating] ?? RATING_COLOR.WATCH
+              const rc = RATING[a.rating as keyof typeof RATING] ?? RATING.WATCH
               const pdfUrl = getPdfUrl(a.pdf_path)
               const upside = a.current_price && a.price_target
                 ? (((a.price_target - a.current_price) / a.current_price) * 100).toFixed(1)
                 : null
 
               return (
-                <div key={a.id} className="card" style={{ animationDelay: `${i * 0.05}s` }}>
-
-                  {/* Top row */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 3, height: 28, background: rc.text, borderRadius: 2, flexShrink: 0 }} />
+                <article key={a.id} className="card" style={{ animationDelay: `${i * 0.05}s` }}>
+                  <div className="card-top">
+                    {/* Header */}
+                    <div className="card-header">
                       <div>
-                        <div style={{ fontSize: 14, letterSpacing: 3, color: '#1a1a1a', fontWeight: 500, textTransform: 'uppercase' }}>
-                          {a.ticker}
-                        </div>
-                        {a.sector && (
-                          <div style={{ fontSize: 8, letterSpacing: 2, color: '#bbb', textTransform: 'uppercase', marginTop: 2 }}>
-                            {a.sector}
-                          </div>
-                        )}
+                        <div className="card-ticker">{a.ticker}</div>
+                        {a.sector && <div className="card-sector">{a.sector}</div>}
+                      </div>
+                      <div className="card-badge" style={{ background: rc.bg, color: rc.text, border: `1px solid ${rc.border}` }}>
+                        <span>{rc.icon}</span> {a.rating}
                       </div>
                     </div>
-                    <div style={{
-                      padding: '5px 14px', fontSize: 9, letterSpacing: 3, fontWeight: 500,
-                      background: rc.bg, color: rc.text, border: `1px solid ${rc.border}`,
-                      textTransform: 'uppercase',
-                    }}>
-                      {a.rating}
-                    </div>
-                  </div>
 
-                  {/* Title */}
-                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 400, color: '#1a1a1a', lineHeight: 1.3, marginBottom: 12 }}>
-                    {a.title}
-                  </div>
+                    {/* Title */}
+                    <div className="card-title">{a.title}</div>
 
-                  {/* Description */}
-                  {a.description && (
-                    <div style={{ fontSize: 11, color: '#888', lineHeight: 1.8, marginBottom: 20 }}>
-                      {a.description}
-                    </div>
-                  )}
+                    {/* Description */}
+                    {a.description && <div className="card-desc">{a.description}</div>}
+                  </div>
 
                   {/* Prices */}
                   {(a.current_price || a.price_target) && (
-                    <div className="price-grid" style={{ display: 'grid', gridTemplateColumns: upside ? '1fr 1fr 1fr' : '1fr 1fr', gap: 4, marginBottom: 20 }}>
+                    <div className="price-block">
                       {a.current_price && (
-                        <div className="price-box">
-                          <div style={{ fontSize: 8, letterSpacing: 2, color: '#bbb', textTransform: 'uppercase', marginBottom: 6 }}>Kurs</div>
-                          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: '#1a1a1a', fontWeight: 400 }}>
-                            ${Number(a.current_price).toLocaleString('de-DE')}
-                          </div>
+                        <div className="price-cell">
+                          <div className="price-label">Current Price</div>
+                          <div className="price-value">${Number(a.current_price).toLocaleString('en-US')}</div>
                         </div>
                       )}
                       {a.price_target && (
-                        <div className="price-box">
-                          <div style={{ fontSize: 8, letterSpacing: 2, color: '#bbb', textTransform: 'uppercase', marginBottom: 6 }}>Kursziel</div>
-                          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: '#b8962e', fontWeight: 400 }}>
-                            ${Number(a.price_target).toLocaleString('de-DE')}
-                          </div>
+                        <div className="price-cell">
+                          <div className="price-label">Price Target</div>
+                          <div className="price-value gold">${Number(a.price_target).toLocaleString('en-US')}</div>
                         </div>
                       )}
                       {upside && (
-                        <div className="price-box">
-                          <div style={{ fontSize: 8, letterSpacing: 2, color: '#bbb', textTransform: 'uppercase', marginBottom: 6 }}>Upside</div>
-                          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 400, color: Number(upside) >= 0 ? '#1a8a54' : '#c0392b' }}>
+                        <div className="price-cell">
+                          <div className="price-label">Upside</div>
+                          <div className={`price-value ${Number(upside) >= 0 ? 'up' : 'down'}`}>
                             {Number(upside) >= 0 ? '+' : ''}{upside}%
                           </div>
                         </div>
@@ -270,38 +248,31 @@ export default async function HomePage() {
                   )}
 
                   {/* Footer */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, borderTop: '1px solid #f0ece4', flexWrap: 'wrap', gap: 10 }}>
+                  <div className="card-footer">
                     {pdfUrl ? (
-                      <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="pdf-btn">
-                        <span>↓</span> Report öffnen
+                      <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="open-btn">
+                        ↓ Open Report
                       </a>
                     ) : <div />}
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                      {a.analyst && <span className="tag">{a.analyst}</span>}
-                      <span style={{ fontSize: 9, color: '#ccc', letterSpacing: 1 }}>
-                        {new Date(a.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    <div className="card-meta">
+                      {a.analyst && <span className="meta-tag">{a.analyst}</span>}
+                      <span className="meta-date">
+                        {new Date(a.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </span>
                     </div>
                   </div>
-                </div>
+                </article>
               )
             })}
           </div>
         )}
       </main>
 
-      {/* Footer */}
-      <footer style={{ background: '#fff', borderTop: '1px solid #e8e3d8' }}>
-        <div className="footer-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: '#1a1a1a', fontWeight: 600 }}>Alpha Desk</div>
-            <div style={{ fontSize: 8, letterSpacing: 2, color: '#ccc', textTransform: 'uppercase' }}>
-              © {new Date().getFullYear()}
-            </div>
-          </div>
-          <div style={{ fontSize: 8, letterSpacing: 2, color: '#ccc', textTransform: 'uppercase' }}>
-            Institutional Research Platform
-          </div>
+      {/* FOOTER */}
+      <footer className="footer">
+        <div className="footer-inner">
+          <div className="footer-logo">Alpha<span>Desk</span></div>
+          <div className="footer-copy">© {new Date().getFullYear()} · Institutional Research Platform · All rights reserved</div>
         </div>
       </footer>
     </>
