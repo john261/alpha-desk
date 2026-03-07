@@ -235,14 +235,14 @@ export default async function HomePage() {
                     <div className="price-block">
                       {a.current_price && (
                         <div className="price-cell">
-                          <div className="price-value">${Number(a.current_price).toLocaleString('en-US')}</div>
-                          <div className="price-label">Current Price</div>
+                          <div className="price-value">€{Number(a.current_price).toLocaleString('de-DE')}</div>
+                          <div className="price-label">Aktueller Kurs</div>
                         </div>
                       )}
                       {a.price_target && (
                         <div className="price-cell">
-                          <div className="price-value gold">${Number(a.price_target).toLocaleString('en-US')}</div>
-                          <div className="price-label">Price Target</div>
+                          <div className="price-value gold">€{Number(a.price_target).toLocaleString('de-DE')}</div>
+                          <div className="price-label">Kursziel</div>
                         </div>
                       )}
                       {upside && (
@@ -259,13 +259,13 @@ export default async function HomePage() {
                   <div className="card-footer">
                     {pdfUrl ? (
                       <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="open-btn">
-                        ↓ Open Report
+                        ↓ Report öffnen
                       </a>
                     ) : <div />}
                     <div className="card-meta">
                       {a.analyst && <span className="meta-tag">{a.analyst}</span>}
                       <span className="meta-date">
-                        {new Date(a.created_at).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })}
+                        {new Date(a.created_at).toLocaleDateString('de-DE', { day:'2-digit', month:'short', year:'numeric' })}
                       </span>
                     </div>
                   </div>
