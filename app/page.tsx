@@ -30,6 +30,13 @@ export default async function HomePage() {
   const holdCount = analyses?.filter(a => a.rating === 'HOLD').length ?? 0
   const sellCount = analyses?.filter(a => a.rating === 'SELL').length ?? 0
 
+  const kpis = [
+    { num: total,     label: 'Total Reports', color: '#94a3b8', dot: '#64748b', cls: 'kpi-c0', trend: '',  accent: '#64748b' },
+    { num: buyCount,  label: 'Buy Ratings',   color: '#4ade80', dot: '#22c55e', cls: 'kpi-c1', trend: '▲', accent: '#22c55e' },
+    { num: holdCount, label: 'Hold Ratings',  color: '#fbbf24', dot: '#f59e0b', cls: 'kpi-c2', trend: '→', accent: '#f59e0b' },
+    { num: sellCount, label: 'Sell Ratings',  color: '#f87171', dot: '#ef4444', cls: 'kpi-c3', trend: '▼', accent: '#ef4444' },
+  ]
+
   return (
     <>
       <style>{`
@@ -42,7 +49,8 @@ export default async function HomePage() {
         ::-webkit-scrollbar-track { background:#e2e8f0; }
         ::-webkit-scrollbar-thumb { background:#c9a227; border-radius:2px; }
 
-        @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeUp  { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes barGrow { from{width:0} to{width:var(--w)} }
 
         /* ── NAV ── */
         .nav { background:#0a1628; border-bottom:3px solid #c9a227; position:sticky; top:0; z-index:100; }
@@ -62,48 +70,65 @@ export default async function HomePage() {
         .hero-desc { font-size:9px; color:#475569; letter-spacing:3px; text-transform:uppercase; margin-bottom:16px; }
         .hero-line { width:40px; height:2px; background:linear-gradient(90deg,#c9a227,#f0d870); margin:0 auto 20px; }
 
-        /* ── KPI CARD ── */
-        .kpi-wrap { background:#0d1f38; border:1px solid rgba(255,255,255,0.07); box-shadow:0 8px 32px rgba(0,0,0,0.3); display:grid; grid-template-columns:repeat(4,1fr); }
-        .kpi-cell { padding:20px 24px 22px; border-right:1px solid rgba(255,255,255,0.05); transition:background .2s; cursor:default; position:relative; overflow:hidden; }
+        /* ── KPI ── */
+        .kpi-wrap {
+          display:grid; grid-template-columns:repeat(4,1fr);
+          background:#0d1f38;
+          border:1px solid rgba(255,255,255,0.07);
+          box-shadow:0 8px 32px rgba(0,0,0,0.3);
+        }
+        .kpi-cell {
+          padding:22px 24px 20px;
+          border-right:1px solid rgba(255,255,255,0.05);
+          transition:background .2s; cursor:default;
+          position:relative; overflow:hidden;
+        }
         .kpi-cell:last-child { border-right:none; }
-        .kpi-cell::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; transform:scaleX(0); transform-origin:left; transition:transform .35s ease; }
         .kpi-cell:hover { background:#112440; }
+        .kpi-cell::after {
+          content:''; position:absolute; bottom:0; left:0; right:0; height:2px;
+          transform:scaleX(0); transform-origin:left; transition:transform .35s ease;
+        }
         .kpi-cell:hover::after { transform:scaleX(1); }
         .kpi-c0::after { background:#64748b; }
         .kpi-c1::after { background:#22c55e; }
         .kpi-c2::after { background:#f59e0b; }
         .kpi-c3::after { background:#ef4444; }
-        .kpi-icon { font-size:16px; margin-bottom:8px; opacity:.7; }
-        .kpi-num { font-family:'Cormorant Garamond',serif; font-size:44px; font-weight:600; line-height:1; margin-bottom:6px; }
-        .kpi-label { font-size:12px; color:#64748b; letter-spacing:.5px; display:flex; align-items:center; gap:6px; }
-        .kpi-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+
+        .kpi-bar-track { height:2px; background:rgba(255,255,255,0.06); margin-bottom:14px; overflow:hidden; }
+        .kpi-bar-fill  { height:100%; border-radius:1px; animation:barGrow .8s ease both; }
+
+        .kpi-num-row { display:flex; align-items:baseline; gap:10px; margin-bottom:8px; }
+        .kpi-num   { font-family:'Cormorant Garamond',serif; font-size:44px; font-weight:600; line-height:1; }
+        .kpi-trend { font-size:13px; opacity:.6; font-family:'DM Mono',monospace; }
+        .kpi-label { font-size:11px; color:#475569; letter-spacing:.5px; display:flex; align-items:center; gap:8px; }
+        .kpi-dot   { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
 
         /* ── MAIN ── */
         .main { max-width:1200px; margin:0 auto; padding:28px 32px 80px; }
-
-        .section-bar { display:flex; align-items:baseline; gap:12px; margin-bottom:8px; }
+        .section-bar   { display:flex; align-items:baseline; gap:12px; margin-bottom:8px; }
         .section-title { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:600; color:#0f172a; }
         .section-count { font-size:9px; letter-spacing:2px; color:#94a3b8; text-transform:uppercase; }
-        .section-line { height:2px; background:linear-gradient(90deg,#e2e8f0,transparent); margin-bottom:20px; }
+        .section-line  { height:2px; background:linear-gradient(90deg,#e2e8f0,transparent); margin-bottom:20px; }
 
         /* ── CARDS ── */
         .cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:20px; }
         .card { background:#fff; border:1px solid #e2e8f0; overflow:hidden; animation:fadeUp .4s ease both; transition:box-shadow .25s,transform .25s,border-color .25s; }
         .card:hover { box-shadow:0 20px 60px rgba(0,0,0,0.12); transform:translateY(-4px); border-color:#c9a227; }
 
-        .card-body { padding:22px 22px 16px; }
+        .card-body   { padding:22px 22px 16px; }
         .card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
         .card-ticker { font-size:13px; letter-spacing:4px; font-weight:500; color:#0f172a; text-transform:uppercase; }
         .card-sector { font-size:8px; letter-spacing:2px; color:#94a3b8; text-transform:uppercase; margin-top:3px; }
-        .card-badge { padding:5px 14px; font-size:9px; letter-spacing:2px; font-weight:600; text-transform:uppercase; display:flex; align-items:center; gap:5px; flex-shrink:0; }
-        .card-title { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:400; color:#0f172a; line-height:1.3; margin-bottom:10px; }
-        .card-desc { font-size:11px; color:#94a3b8; line-height:1.8; }
+        .card-badge  { padding:5px 14px; font-size:9px; letter-spacing:2px; font-weight:600; text-transform:uppercase; display:flex; align-items:center; gap:5px; flex-shrink:0; }
+        .card-title  { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:400; color:#0f172a; line-height:1.3; margin-bottom:10px; }
+        .card-desc   { font-size:11px; color:#94a3b8; line-height:1.8; }
 
         /* ── PRICE BLOCK ── */
         .price-block { display:grid; grid-template-columns:repeat(3,1fr); background:#f8fafc; border-top:1px solid #f1f5f9; }
-        .price-cell { padding:16px 18px; border-right:1px solid #f1f5f9; }
+        .price-cell  { padding:16px 18px; border-right:1px solid #f1f5f9; }
         .price-cell:last-child { border-right:none; }
-        .price-value { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:600; color:#0f172a; line-height:1; margin-bottom:4px; }
+        .price-value      { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:600; color:#0f172a; line-height:1; margin-bottom:4px; }
         .price-value.gold { color:#c9a227; }
         .price-value.up   { color:#15803d; }
         .price-value.dn   { color:#b91c1c; }
@@ -114,18 +139,18 @@ export default async function HomePage() {
         .open-btn { display:inline-flex; align-items:center; gap:8px; padding:11px 22px; background:#0a1628; color:#fff; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; text-decoration:none; font-weight:500; transition:all .2s; box-shadow:0 2px 10px rgba(0,0,0,0.15); }
         .open-btn:hover { background:#c9a227; color:#0a1628; box-shadow:0 6px 24px rgba(201,162,39,0.4); transform:translateY(-1px); }
         .card-meta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        .meta-tag { font-size:8px; letter-spacing:1px; color:#94a3b8; padding:4px 8px; background:#f1f5f9; border:1px solid #e2e8f0; text-transform:uppercase; }
+        .meta-tag  { font-size:8px; letter-spacing:1px; color:#94a3b8; padding:4px 8px; background:#f1f5f9; border:1px solid #e2e8f0; text-transform:uppercase; }
         .meta-date { font-size:9px; color:#cbd5e1; letter-spacing:1px; }
 
         /* ── FOOTER ── */
-        .footer { background:#0a1628; border-top:3px solid #c9a227; }
-        .footer-inner { max-width:1200px; margin:0 auto; padding:32px 32px; display:grid; grid-template-columns:1fr auto; align-items:start; gap:40px; }
-        .footer-logo { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:700; color:#fff; margin-bottom:4px; }
+        .footer       { background:#0a1628; border-top:3px solid #c9a227; }
+        .footer-inner { max-width:1200px; margin:0 auto; padding:32px; display:grid; grid-template-columns:1fr auto; align-items:start; gap:40px; }
+        .footer-logo  { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:700; color:#fff; margin-bottom:4px; }
         .footer-logo span { color:#c9a227; }
         .footer-claim { font-size:8px; letter-spacing:3px; color:#334155; text-transform:uppercase; margin-bottom:10px; }
-        .footer-copy { font-size:8px; color:#1e293b; letter-spacing:1px; text-transform:uppercase; }
+        .footer-copy  { font-size:8px; color:#1e293b; letter-spacing:1px; text-transform:uppercase; }
         .footer-links { display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
-        .footer-link { font-size:8px; letter-spacing:2px; color:#334155; text-transform:uppercase; text-decoration:none; transition:color .2s; }
+        .footer-link  { font-size:8px; letter-spacing:2px; color:#334155; text-transform:uppercase; text-decoration:none; transition:color .2s; }
         .footer-link:hover { color:#c9a227; }
 
         /* ── RESPONSIVE ── */
@@ -135,14 +160,14 @@ export default async function HomePage() {
           .kpi-cell:nth-child(1),.kpi-cell:nth-child(2) { border-bottom:1px solid rgba(255,255,255,0.05); }
         }
         @media (max-width:640px) {
-          .nav-inner  { padding:0 16px; }
+          .nav-inner   { padding:0 16px; }
           .nav-tagline { display:none; }
-          .hero       { padding:20px 16px 0; }
-          .hero-title { font-size:24px; }
-          .kpi-num    { font-size:34px; }
-          .kpi-cell   { padding:16px; }
-          .main       { padding:20px 16px 60px; }
-          .cards-grid { grid-template-columns:1fr; gap:12px; }
+          .hero        { padding:20px 16px 0; }
+          .hero-title  { font-size:24px; }
+          .kpi-num     { font-size:34px; }
+          .kpi-cell    { padding:16px; }
+          .main        { padding:20px 16px 60px; }
+          .cards-grid  { grid-template-columns:1fr; gap:12px; }
           .price-block { grid-template-columns:1fr 1fr; }
           .price-cell:nth-child(3) { grid-column:1/-1; border-top:1px solid #f1f5f9; border-right:none; }
           .card-footer { flex-direction:column; align-items:flex-start; }
@@ -175,21 +200,30 @@ export default async function HomePage() {
 
           {/* KPI */}
           <div className="kpi-wrap">
-            {[
-              { icon:'📊', num:total,     label:'Total Reports', color:'#94a3b8', dot:'#64748b', cls:'kpi-c0' },
-              { icon:'📈', num:buyCount,  label:'Buy Ratings',   color:'#4ade80', dot:'#22c55e', cls:'kpi-c1' },
-              { icon:'➡️', num:holdCount, label:'Hold Ratings',  color:'#fbbf24', dot:'#f59e0b', cls:'kpi-c2' },
-              { icon:'📉', num:sellCount, label:'Sell Ratings',  color:'#f87171', dot:'#ef4444', cls:'kpi-c3' },
-            ].map(k => (
-              <div key={k.label} className={`kpi-cell ${k.cls}`}>
-                <div className="kpi-icon">{k.icon}</div>
-                <div className="kpi-num" style={{ color:k.color }}>{k.num}</div>
-                <div className="kpi-label">
-                  <span className="kpi-dot" style={{ background:k.dot }} />
-                  {k.label}
+            {kpis.map((k, idx) => {
+              const pct = total > 0 ? Math.round((k.num / total) * 100) : (idx === 0 ? 100 : 0)
+              const barWidth = idx === 0 ? 100 : pct
+              return (
+                <div key={k.label} className={`kpi-cell ${k.cls}`}>
+                  <div className="kpi-bar-track">
+                    <div className="kpi-bar-fill" style={{
+                      width: `${barWidth}%`,
+                      background: k.accent,
+                      animationDelay: `${idx * 0.1}s`,
+                      ['--w' as any]: `${barWidth}%`,
+                    }} />
+                  </div>
+                  <div className="kpi-num-row">
+                    <div className="kpi-num" style={{ color: k.color }}>{k.num}</div>
+                    {k.trend && <div className="kpi-trend" style={{ color: k.color }}>{k.trend}</div>}
+                  </div>
+                  <div className="kpi-label">
+                    <span className="kpi-dot" style={{ background: k.dot }} />
+                    {k.label}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
