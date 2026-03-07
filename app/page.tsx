@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export default function LoginPage() {
+function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/admin'
@@ -215,5 +215,13 @@ export default function LoginPage() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense>
+      <LoginPage />
+    </Suspense>
   )
 }
