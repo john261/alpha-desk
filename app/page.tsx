@@ -22,7 +22,7 @@ export default async function HomePage() {
   function getPdfUrl(path: string) {
     if (!path) return null
     if (path.startsWith('http')) return path
-    return `${supabaseUrl}/storage/v1/object/public/${path}`
+    return `${supabaseUrl}/storage/v1/object/public/analyses-pdfs/${path}`
   }
 
   const buyCount  = analyses?.filter(a => a.rating === 'BUY').length  ?? 0
@@ -77,7 +77,6 @@ export default async function HomePage() {
         .pdf-btn:hover { background:rgba(245,200,66,0.12); border-color:rgba(245,200,66,0.4); }
 
         .stat-card { background:#0d0d0d; border:1px solid #1c1c1c; padding:24px 28px; }
-        .divider { width:100%; height:1px; background:linear-gradient(90deg,#1c1c1c,transparent); margin:0; }
       `}</style>
 
       {/* Navigation */}
@@ -105,11 +104,7 @@ export default async function HomePage() {
             fontSize:8, letterSpacing:3, color:'#2a2a2a',
             textTransform:'uppercase', textDecoration:'none',
             padding:'6px 12px', border:'1px solid #1a1a1a',
-            transition:'color .2s, border-color .2s',
-          }}
-          onMouseEnter={(e: any) => { e.target.style.color='#555'; e.target.style.borderColor='#333' }}
-          onMouseLeave={(e: any) => { e.target.style.color='#2a2a2a'; e.target.style.borderColor='#1a1a1a' }}
-          >Admin</a>
+          }}>Admin</a>
         </div>
       </nav>
 
@@ -127,15 +122,14 @@ export default async function HomePage() {
             Equity Analysis &<br />
             <em style={{ color:'#f5c842', fontStyle:'italic' }}>Market Intelligence</em>
           </h1>
-          <div style={{ height:1, background:'linear-gradient(90deg,#f5c84240,transparent)', marginBottom:32, animation:'lineGrow 1s ease' }} />
+          <div style={{ height:1, background:'linear-gradient(90deg,#f5c84240,transparent)', marginBottom:32 }} />
 
-          {/* Stats row */}
           <div style={{ display:'flex', gap:1, flexWrap:'wrap' }}>
             {[
-              { label:'Total Reports',  value: analyses?.length ?? 0, color:'#d4cfc8' },
-              { label:'Buy Ratings',    value: buyCount,              color:'#4ec994'  },
-              { label:'Hold Ratings',   value: holdCount,             color:'#f5c842'  },
-              { label:'Sell Ratings',   value: sellCount,             color:'#e05555'  },
+              { label:'Total Reports', value: analyses?.length ?? 0, color:'#d4cfc8' },
+              { label:'Buy Ratings',   value: buyCount,              color:'#4ec994'  },
+              { label:'Hold Ratings',  value: holdCount,             color:'#f5c842'  },
+              { label:'Sell Ratings',  value: sellCount,             color:'#e05555'  },
             ].map(s => (
               <div key={s.label} className="stat-card" style={{ flex:'1 1 120px' }}>
                 <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:32, fontWeight:400, color:s.color, lineHeight:1 }}>
@@ -168,7 +162,6 @@ export default async function HomePage() {
               return (
                 <div key={a.id} className="card" style={{ animationDelay:`${i*0.06}s` }}>
 
-                  {/* Header row */}
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:28 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                       <div style={{ width:3, height:24, background:rc.text, borderRadius:1 }} />
@@ -184,7 +177,6 @@ export default async function HomePage() {
                     </div>
                   </div>
 
-                  {/* Title */}
                   <div style={{
                     fontFamily:"'Cormorant Garamond',serif",
                     fontSize:24, fontWeight:400, color:'#f0ece4',
@@ -193,14 +185,12 @@ export default async function HomePage() {
                     {a.title}
                   </div>
 
-                  {/* Description */}
                   {a.description && (
                     <div style={{ fontSize:11, color:'#3a3a3a', lineHeight:1.8, marginBottom:24 }}>
                       {a.description}
                     </div>
                   )}
 
-                  {/* Meta tags */}
                   <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:24 }}>
                     {a.sector && (
                       <span style={{ fontSize:8, letterSpacing:2, color:'#2a2a2a', border:'1px solid #1c1c1c', padding:'4px 10px', textTransform:'uppercase' }}>
@@ -214,7 +204,6 @@ export default async function HomePage() {
                     )}
                   </div>
 
-                  {/* Prices */}
                   {(a.current_price || a.price_target) && (
                     <div style={{
                       display:'grid', gridTemplateColumns:'1fr 1fr',
@@ -223,9 +212,7 @@ export default async function HomePage() {
                     }}>
                       {a.current_price && (
                         <div style={{ padding:'16px 20px', background:'#0a0a0a' }}>
-                          <div style={{ fontSize:8, letterSpacing:3, color:'#2a2a2a', textTransform:'uppercase', marginBottom:8 }}>
-                            Aktuell
-                          </div>
+                          <div style={{ fontSize:8, letterSpacing:3, color:'#2a2a2a', textTransform:'uppercase', marginBottom:8 }}>Aktuell</div>
                           <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, color:'#d4cfc8', fontWeight:400 }}>
                             ${Number(a.current_price).toLocaleString('de-DE')}
                           </div>
@@ -233,9 +220,7 @@ export default async function HomePage() {
                       )}
                       {a.price_target && (
                         <div style={{ padding:'16px 20px', background:'#0a0a0a' }}>
-                          <div style={{ fontSize:8, letterSpacing:3, color:'#2a2a2a', textTransform:'uppercase', marginBottom:8 }}>
-                            Kursziel
-                          </div>
+                          <div style={{ fontSize:8, letterSpacing:3, color:'#2a2a2a', textTransform:'uppercase', marginBottom:8 }}>Kursziel</div>
                           <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, color:'#f5c842', fontWeight:400 }}>
                             ${Number(a.price_target).toLocaleString('de-DE')}
                           </div>
@@ -244,7 +229,6 @@ export default async function HomePage() {
                     </div>
                   )}
 
-                  {/* Footer */}
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     {pdfUrl ? (
                       <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="pdf-btn">
@@ -264,7 +248,6 @@ export default async function HomePage() {
         )}
       </main>
 
-      {/* Footer */}
       <footer style={{ marginTop:80, borderTop:'1px solid #141414', padding:'32px 48px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
         <div style={{ display:'flex', alignItems:'center', gap:16 }}>
           <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:16, color:'#222' }}>Alpha Desk</div>
