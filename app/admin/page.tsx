@@ -35,7 +35,6 @@ export default function AdminPage() {
   const [tab, setTab]           = useState<'upload' | 'manage'>('upload')
   const [userEmail, setUserEmail] = useState('')
 
-  // Load user + analyses
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.replace('/login'); return }
@@ -45,7 +44,7 @@ export default function AdminPage() {
   }, [])
 
   async function loadAnalyses() {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('analyses')
       .select('*')
       .order('created_at', { ascending: false })
@@ -70,7 +69,6 @@ export default function AdminPage() {
     let pdf_path = null
     let pdf_name = null
 
-    // Upload PDF to Supabase Storage
     if (pdfFile) {
       const ext  = pdfFile.name.split('.').pop()
       const path = `${Date.now()}_${form.ticker.toUpperCase()}.${ext}`
@@ -85,10 +83,9 @@ export default function AdminPage() {
       pdf_name = pdfFile.name
     }
 
-    // Get current user ID
     const { data: { user } } = await supabase.auth.getUser()
 
-    const { error } = await supabase.from('analyses').insert({
+    const { error } = await (supabase as any).from('analyses').insert({
       ticker:        form.ticker.toUpperCase().trim(),
       title:         form.title.trim(),
       description:   form.description.trim() || null,
@@ -116,7 +113,7 @@ export default function AdminPage() {
   }
 
   async function togglePublish(a: Analysis) {
-    const { error } = await supabase.from('analyses').update({ published: !a.published }).eq('id', a.id)
+    const { error } = await (supabase as any).from('analyses').update({ published: !a.published }).eq('id', a.id)
     if (!error) {
       setAnalyses(prev => prev.map(x => x.id === a.id ? { ...x, published: !x.published } : x))
       showToast(!a.published ? '✓ PUBLISHED' : '✓ SET TO DRAFT')
@@ -125,11 +122,10 @@ export default function AdminPage() {
 
   async function deleteAnalysis(a: Analysis) {
     if (!confirm(`Delete "${a.title}"? This cannot be undone.`)) return
-    // Delete PDF from storage
     if (a.pdf_path) {
       await supabase.storage.from('analyses-pdfs').remove([a.pdf_path])
     }
-    const { error } = await supabase.from('analyses').delete().eq('id', a.id)
+    const { error } = await (supabase as any).from('analyses').delete().eq('id', a.id)
     if (!error) {
       setAnalyses(prev => prev.filter(x => x.id !== a.id))
       showToast('✓ DELETED')
@@ -163,7 +159,6 @@ export default function AdminPage() {
         .focus-gold:focus { border-color: var(--gold) !important; }
       `}</style>
 
-      {/* Background */}
       <div style={{ position:'fixed', inset:0, background:'var(--bg)', zIndex:0 }} />
       <div style={{ position:'fixed', inset:0, opacity:0.025, zIndex:0,
         backgroundImage:'linear-gradient(var(--gold) 1px,transparent 1px),linear-gradient(90deg,var(--gold) 1px,transparent 1px)',
@@ -171,7 +166,6 @@ export default function AdminPage() {
 
       <div style={{ position:'relative', zIndex:1, minHeight:'100vh', animation:'fadeIn 0.4s ease' }}>
 
-        {/* NAV */}
         <nav style={{
           display:'flex', alignItems:'center', justifyContent:'space-between',
           padding:'20px 48px', borderBottom:'1px solid var(--border)',
@@ -206,7 +200,6 @@ export default function AdminPage() {
 
         <div style={{ maxWidth:960, margin:'0 auto', padding:'64px 48px' }}>
 
-          {/* Header */}
           <div style={{ marginBottom:56 }}>
             <div style={{ fontSize:9, letterSpacing:4, color:'var(--gold)', textTransform:'uppercase', marginBottom:12, display:'flex', alignItems:'center', gap:12 }}>
               <span style={{ display:'block', width:30, height:1, background:'var(--gold)' }} />
@@ -217,7 +210,6 @@ export default function AdminPage() {
             </h1>
           </div>
 
-          {/* Tabs */}
           <div style={{ display:'flex', gap:0, marginBottom:48, borderBottom:'1px solid var(--border)' }}>
             {(['upload', 'manage'] as const).map(t => (
               <button key={t} onClick={() => setTab(t)} style={{
@@ -231,10 +223,8 @@ export default function AdminPage() {
             ))}
           </div>
 
-          {/* ─── UPLOAD TAB ─── */}
           {tab === 'upload' && (
             <div style={{ animation:'fadeIn 0.3s ease' }}>
-              {/* Drop Zone */}
               <div
                 onClick={() => fileRef.current?.click()}
                 onDragOver={e => { e.preventDefault(); setDrag(true) }}
@@ -257,7 +247,6 @@ export default function AdminPage() {
                 <input ref={fileRef} type="file" accept=".pdf" style={{ display:'none' }} onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
               </div>
 
-              {/* Form */}
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, marginBottom:20 }}>
                 {[
                   { label:'Ticker Symbol *', key:'ticker' as const, placeholder:'AAPL', colSpan:false },
@@ -325,7 +314,6 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ─── MANAGE TAB ─── */}
           {tab === 'manage' && (
             <div style={{ animation:'fadeIn 0.3s ease' }}>
               {analyses.length === 0 ? (
@@ -384,7 +372,6 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Toast */}
       {toast && (
         <div style={{
           position:'fixed', bottom:40, right:40, zIndex:300,
