@@ -1,4 +1,3 @@
-// middleware.ts — Runs on every request, protects /admin routes
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -10,48 +9,20 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({ request })
+        getAll() { return request.cookies.getAll() },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setAll(cookiesToSet: any[]) {
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+            supabaseResponse.cookies.set(name, value, options))
         },
       },
     }
   )
 
-  // Refresh session — IMPORTANT: don't remove this
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // ─── Protect all /admin routes ───
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!user) {
-      const loginUrl = request.nextUrl.clone()
-      loginUrl.pathname = '/login'
-      loginUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
-      return NextResponse.redirect(loginUrl)
-    }
-  }
-
-  // ─── Redirect authenticated users away from login ───
-  if (request.nextUrl.pathname === '/login' && user) {
-    const adminUrl = request.nextUrl.clone()
-    adminUrl.pathname = '/admin'
-    return NextResponse.redirect(adminUrl)
-  }
-
+  await supabase.auth.getUser()
   return supabaseResponse
 }
 
 export const config = {
-  matcher: [
-    // Run on all paths except static files and _next
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }
