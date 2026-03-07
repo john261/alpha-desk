@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export default function LoginPage() {
+function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/admin'
@@ -82,20 +82,18 @@ export default function LoginPage() {
         .shake { animation: shake .35s ease; }
       `}</style>
 
-      {/* Full-screen grid layout */}
       <div style={{
         display: 'grid', gridTemplateColumns: '1fr 480px 1fr',
         gridTemplateRows: '1fr', height: '100vh',
         background: '#050505',
       }}>
 
-        {/* Left panel — editorial */}
+        {/* Left panel */}
         <div style={{
           borderRight: '1px solid #0e0e0e',
           display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
           padding: '48px 52px', overflow: 'hidden', position: 'relative',
         }}>
-          {/* Big watermark text */}
           <div style={{
             position: 'absolute', bottom: -40, left: -20,
             fontFamily: "'Playfair Display', serif",
@@ -124,7 +122,6 @@ export default function LoginPage() {
           borderRight: '1px solid #0e0e0e',
           animation: mounted ? 'fadeIn .5s ease' : 'none',
         }}>
-          {/* Logo */}
           <div style={{ marginBottom: 60 }}>
             <div style={{
               fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 900,
@@ -140,11 +137,8 @@ export default function LoginPage() {
             Restricted Access
           </div>
 
-          {/* Email */}
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 8, letterSpacing: 4, color: '#2a2a2a', textTransform: 'uppercase', marginBottom: 10 }}>
-              Email
-            </div>
+            <div style={{ fontSize: 8, letterSpacing: 4, color: '#2a2a2a', textTransform: 'uppercase', marginBottom: 10 }}>Email</div>
             <input
               type="email" value={email}
               onChange={e => setEmail(e.target.value)}
@@ -158,16 +152,13 @@ export default function LoginPage() {
                 fontFamily: "'DM Mono', monospace", outline: 'none',
                 letterSpacing: .5, opacity: locked ? .3 : 1, transition: 'border-color .2s',
               }}
-              onFocus={e => !locked && (e.target.style.borderColor = '#e8d5a0')}
-              onBlur={e => (e.target.style.borderColor = '#1a1a1a')}
+              onFocus={e => !locked && (e.currentTarget.style.borderColor = '#e8d5a0')}
+              onBlur={e => (e.currentTarget.style.borderColor = '#1a1a1a')}
             />
           </div>
 
-          {/* Password */}
           <div style={{ marginBottom: 40 }}>
-            <div style={{ fontSize: 8, letterSpacing: 4, color: '#2a2a2a', textTransform: 'uppercase', marginBottom: 10 }}>
-              Password
-            </div>
+            <div style={{ fontSize: 8, letterSpacing: 4, color: '#2a2a2a', textTransform: 'uppercase', marginBottom: 10 }}>Password</div>
             <input
               type="password" value={password}
               onChange={e => setPassword(e.target.value)}
@@ -181,12 +172,11 @@ export default function LoginPage() {
                 fontFamily: "'DM Mono', monospace", outline: 'none',
                 letterSpacing: 2, opacity: locked ? .3 : 1, transition: 'border-color .2s',
               }}
-              onFocus={e => !locked && (e.target.style.borderColor = '#e8d5a0')}
-              onBlur={e => (e.target.style.borderColor = '#1a1a1a')}
+              onFocus={e => !locked && (e.currentTarget.style.borderColor = '#e8d5a0')}
+              onBlur={e => (e.currentTarget.style.borderColor = '#1a1a1a')}
             />
           </div>
 
-          {/* Error */}
           {error && (
             <div className="shake" style={{
               fontSize: 9, letterSpacing: 2, marginBottom: 24,
@@ -198,7 +188,6 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Submit */}
           <button
             onClick={handleLogin}
             disabled={loading || locked}
@@ -210,13 +199,12 @@ export default function LoginPage() {
               padding: '18px', cursor: locked ? 'not-allowed' : 'pointer',
               transition: 'all .25s',
             }}
-            onMouseEnter={e => { if (!locked && !loading) (e.target as any).style.background = '#e8d5a0' }}
-            onMouseLeave={e => { if (!locked && !loading) (e.target as any).style.background = '#fff' }}
+            onMouseEnter={e => { if (!locked && !loading) (e.currentTarget.style.background = '#e8d5a0') }}
+            onMouseLeave={e => { if (!locked && !loading) (e.currentTarget.style.background = '#fff') }}
           >
             {loading ? 'Authenticating...' : locked ? `Locked · ${remainingSecs}s` : 'Access System →'}
           </button>
 
-          {/* Security note */}
           <div style={{
             marginTop: 48, fontSize: 8, letterSpacing: 2, color: '#151515',
             lineHeight: 2, textTransform: 'uppercase',
@@ -252,5 +240,13 @@ export default function LoginPage() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense>
+      <LoginPage />
+    </Suspense>
   )
 }
