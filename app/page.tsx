@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 
 const RATING_COLOR: Record<string, { bg: string; text: string; border: string }> = {
-  BUY:   { bg: 'rgba(78,201,148,0.1)',  text: '#4ec994', border: 'rgba(78,201,148,0.3)'  },
-  HOLD:  { bg: 'rgba(245,200,66,0.1)',  text: '#f5c842', border: 'rgba(245,200,66,0.3)'  },
-  SELL:  { bg: 'rgba(224,85,85,0.1)',   text: '#e05555', border: 'rgba(224,85,85,0.3)'   },
-  WATCH: { bg: 'rgba(160,160,160,0.1)', text: '#aaa',    border: 'rgba(160,160,160,0.3)' },
+  BUY:   { bg: '#f0faf5', text: '#1a8a54', border: '#b8e8d0' },
+  HOLD:  { bg: '#fffbf0', text: '#9a6e00', border: '#f0d880' },
+  SELL:  { bg: '#fff5f5', text: '#c0392b', border: '#f5c0bc' },
+  WATCH: { bg: '#f5f5f5', text: '#666',    border: '#ddd'    },
 }
 
 export const revalidate = 60
@@ -32,110 +32,147 @@ export default async function HomePage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&display=swap');
+
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-        html { scroll-behavior: smooth; }
-        body { background:#080808; color:#d4cfc8; font-family:'DM Mono',monospace; -webkit-font-smoothing:antialiased; }
+        html { scroll-behavior:smooth; }
+        body {
+          background: #f8f6f2;
+          color: #1a1a1a;
+          font-family: 'DM Mono', monospace;
+          -webkit-font-smoothing: antialiased;
+        }
 
-        ::-webkit-scrollbar { width:4px; }
-        ::-webkit-scrollbar-track { background:#0d0d0d; }
-        ::-webkit-scrollbar-thumb { background:#222; border-radius:2px; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #f0ede8; }
+        ::-webkit-scrollbar-thumb { background: #d4c89a; border-radius: 2px; }
 
-        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes lineGrow { from{width:0} to{width:100%} }
+        @keyframes fadeUp {
+          from { opacity:0; transform:translateY(12px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+
+        .nav-link {
+          font-size: 9px; letter-spacing: 3px; color: #999;
+          text-transform: uppercase; text-decoration: none;
+          padding: 7px 14px; border: 1px solid #e0dbd0;
+          transition: all .2s;
+        }
+        .nav-link:hover { color: #b8962e; border-color: #d4c070; background: #fffdf5; }
+
+        .stat-box {
+          flex: 1 1 120px;
+          background: #fff;
+          border: 1px solid #e8e3d8;
+          padding: 20px 24px;
+          transition: box-shadow .2s;
+        }
+        .stat-box:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
 
         .card {
-          background: #0d0d0d;
-          border: 1px solid #1c1c1c;
-          padding: 36px;
-          transition: border-color .25s, transform .25s, box-shadow .25s;
-          animation: fadeUp .5s ease both;
+          background: #fff;
+          border: 1px solid #e8e3d8;
+          padding: 28px;
+          transition: box-shadow .25s, transform .25s, border-color .25s;
+          animation: fadeUp .4s ease both;
           position: relative;
-          overflow: hidden;
         }
-        .card::before {
-          content:'';
-          position:absolute; top:0; left:0; right:0;
-          height:1px; background: linear-gradient(90deg, transparent, #f5c84230, transparent);
-          transform:scaleX(0); transform-origin:left;
-          transition: transform .4s ease;
+        .card:hover {
+          box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+          transform: translateY(-2px);
+          border-color: #d4c070;
         }
-        .card:hover { border-color:#2a2a2a; transform:translateY(-3px); box-shadow:0 20px 60px rgba(0,0,0,.5); }
-        .card:hover::before { transform:scaleX(1); }
 
         .pdf-btn {
-          display:inline-flex; align-items:center; gap:8px;
-          padding:10px 18px;
-          background:rgba(245,200,66,0.06);
-          border:1px solid rgba(245,200,66,0.2);
-          color:#f5c842;
-          font-family:'DM Mono',monospace;
-          font-size:9px; letter-spacing:3px; text-transform:uppercase;
-          text-decoration:none; cursor:pointer;
-          transition: background .2s, border-color .2s;
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 10px 18px;
+          background: #fffbf0;
+          border: 1px solid #d4c070;
+          color: #9a7820;
+          font-family: 'DM Mono', monospace;
+          font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+          text-decoration: none;
+          transition: all .2s;
         }
-        .pdf-btn:hover { background:rgba(245,200,66,0.12); border-color:rgba(245,200,66,0.4); }
+        .pdf-btn:hover { background: #fff8e0; border-color: #b8962e; color: #7a5c10; }
 
-        .stat-card { background:#0d0d0d; border:1px solid #1c1c1c; padding:24px 28px; }
+        .tag {
+          font-size: 8px; letter-spacing: 2px; color: #999;
+          border: 1px solid #e8e3d8; padding: 4px 10px;
+          text-transform: uppercase; background: #faf9f6;
+        }
+
+        .price-box {
+          padding: 16px 20px;
+          background: #faf9f6;
+          border: 1px solid #ede8de;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+          .hero-title { font-size: 36px !important; }
+          .nav-inner { padding: 0 20px !important; }
+          .hero-inner { padding: 48px 20px 36px !important; }
+          .main-inner { padding: 28px 16px !important; }
+          .stats-row  { gap: 2px !important; }
+          .stat-box   { padding: 16px !important; }
+          .grid       { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .card       { padding: 20px !important; }
+          .footer-inner { padding: 24px 20px !important; flex-direction: column !important; gap: 8px !important; text-align: center !important; }
+        }
+
+        @media (max-width: 480px) {
+          .hero-title { font-size: 28px !important; }
+          .price-grid { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
-      {/* Navigation */}
-      <nav style={{
-        position:'sticky', top:0, zIndex:100,
-        background:'rgba(8,8,8,0.92)', backdropFilter:'blur(20px)',
-        borderBottom:'1px solid #141414',
-        padding:'0 48px', height:64,
-        display:'flex', alignItems:'center', justifyContent:'space-between',
-      }}>
-        <div style={{ display:'flex', alignItems:'center', gap:16 }}>
-          <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:20, fontWeight:600, color:'#fff', letterSpacing:-0.5 }}>
-            Alpha Desk
+      {/* Nav */}
+      <nav style={{ background: '#fff', borderBottom: '1px solid #e8e3d8', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div className="nav-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 48px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 600, color: '#1a1a1a', letterSpacing: -0.5 }}>
+              Alpha Desk
+            </div>
+            <div style={{ width: 1, height: 16, background: '#e0dbd0' }} />
+            <div style={{ fontSize: 8, letterSpacing: 4, color: '#bbb', textTransform: 'uppercase' }}>
+              Research
+            </div>
           </div>
-          <div style={{ width:1, height:16, background:'#1c1c1c' }} />
-          <div style={{ fontSize:8, letterSpacing:4, color:'#333', textTransform:'uppercase' }}>
-            Research Portal
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ fontSize: 8, letterSpacing: 2, color: '#ccc', textTransform: 'uppercase' }}>
+              {new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </div>
+            <a href="/login" className="nav-link">Admin</a>
           </div>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:24 }}>
-          <div style={{ fontSize:8, letterSpacing:3, color:'#2a2a2a', textTransform:'uppercase' }}>
-            {new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'short', year:'numeric' })}
-          </div>
-          <a href="/login" style={{
-            fontSize:8, letterSpacing:3, color:'#2a2a2a',
-            textTransform:'uppercase', textDecoration:'none',
-            padding:'6px 12px', border:'1px solid #1a1a1a',
-          }}>Admin</a>
         </div>
       </nav>
 
       {/* Hero */}
-      <section style={{ padding:'80px 48px 60px', borderBottom:'1px solid #141414' }}>
-        <div style={{ maxWidth:1200, margin:'0 auto' }}>
-          <div style={{ fontSize:8, letterSpacing:6, color:'#333', textTransform:'uppercase', marginBottom:24 }}>
+      <section style={{ background: '#fff', borderBottom: '1px solid #e8e3d8' }}>
+        <div className="hero-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 48px 48px' }}>
+          <div style={{ fontSize: 8, letterSpacing: 6, color: '#bbb', textTransform: 'uppercase', marginBottom: 20 }}>
             — Institutional Equity Research
           </div>
-          <h1 style={{
-            fontFamily:"'Cormorant Garamond',serif",
-            fontSize:'clamp(40px,6vw,72px)', fontWeight:300,
-            color:'#fff', lineHeight:1.05, marginBottom:32,
-          }}>
-            Equity Analysis &<br />
-            <em style={{ color:'#f5c842', fontStyle:'italic' }}>Market Intelligence</em>
+          <h1 className="hero-title" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 56, fontWeight: 400, color: '#1a1a1a', lineHeight: 1.05, marginBottom: 8 }}>
+            Equity Analysis &{' '}
+            <em style={{ color: '#b8962e', fontStyle: 'italic' }}>Market Intelligence</em>
           </h1>
-          <div style={{ height:1, background:'linear-gradient(90deg,#f5c84240,transparent)', marginBottom:32 }} />
+          <div style={{ width: 60, height: 2, background: 'linear-gradient(90deg,#d4c070,#f0e090)', marginTop: 24, marginBottom: 36 }} />
 
-          <div style={{ display:'flex', gap:1, flexWrap:'wrap' }}>
+          {/* Stats */}
+          <div className="stats-row" style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {[
-              { label:'Total Reports', value: analyses?.length ?? 0, color:'#d4cfc8' },
-              { label:'Buy Ratings',   value: buyCount,              color:'#4ec994'  },
-              { label:'Hold Ratings',  value: holdCount,             color:'#f5c842'  },
-              { label:'Sell Ratings',  value: sellCount,             color:'#e05555'  },
+              { label: 'Total Reports', value: analyses?.length ?? 0, color: '#1a1a1a' },
+              { label: 'Buy',           value: buyCount,              color: '#1a8a54'  },
+              { label: 'Hold',          value: holdCount,             color: '#9a6e00'  },
+              { label: 'Sell',          value: sellCount,             color: '#c0392b'  },
             ].map(s => (
-              <div key={s.label} className="stat-card" style={{ flex:'1 1 120px' }}>
-                <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:32, fontWeight:400, color:s.color, lineHeight:1 }}>
+              <div key={s.label} className="stat-box">
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 36, fontWeight: 400, color: s.color, lineHeight: 1 }}>
                   {s.value}
                 </div>
-                <div style={{ fontSize:8, letterSpacing:3, color:'#333', textTransform:'uppercase', marginTop:8 }}>
+                <div style={{ fontSize: 8, letterSpacing: 3, color: '#aaa', textTransform: 'uppercase', marginTop: 6 }}>
                   {s.label}
                 </div>
               </div>
@@ -144,101 +181,106 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Reports Grid */}
-      <main style={{ padding:'48px', maxWidth:1248, margin:'0 auto' }}>
-        <div style={{ fontSize:8, letterSpacing:4, color:'#2a2a2a', textTransform:'uppercase', marginBottom:32 }}>
-          Published Reports
+      {/* Grid */}
+      <main className="main-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 48px 80px' }}>
+        <div style={{ fontSize: 8, letterSpacing: 4, color: '#bbb', textTransform: 'uppercase', marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid #ede8de' }}>
+          {analyses?.length ?? 0} Published Report{analyses?.length !== 1 ? 's' : ''}
         </div>
 
         {!analyses || analyses.length === 0 ? (
-          <div style={{ textAlign:'center', padding:'100px 0', color:'#222', fontSize:11, letterSpacing:3, textTransform:'uppercase' }}>
+          <div style={{ textAlign: 'center', padding: '80px 0', color: '#ccc', fontSize: 12, letterSpacing: 2, textTransform: 'uppercase' }}>
             Keine Analysen verfügbar
           </div>
         ) : (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(360px,1fr))', gap:1 }}>
+          <div className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
             {analyses.map((a, i) => {
               const rc = RATING_COLOR[a.rating] ?? RATING_COLOR.WATCH
               const pdfUrl = getPdfUrl(a.pdf_path)
-              return (
-                <div key={a.id} className="card" style={{ animationDelay:`${i*0.06}s` }}>
+              const upside = a.current_price && a.price_target
+                ? (((a.price_target - a.current_price) / a.current_price) * 100).toFixed(1)
+                : null
 
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:28 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                      <div style={{ width:3, height:24, background:rc.text, borderRadius:1 }} />
-                      <div style={{ fontSize:10, letterSpacing:4, color:'#555', textTransform:'uppercase', fontWeight:500 }}>
-                        {a.ticker}
+              return (
+                <div key={a.id} className="card" style={{ animationDelay: `${i * 0.05}s` }}>
+
+                  {/* Top row */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 3, height: 28, background: rc.text, borderRadius: 2, flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: 14, letterSpacing: 3, color: '#1a1a1a', fontWeight: 500, textTransform: 'uppercase' }}>
+                          {a.ticker}
+                        </div>
+                        {a.sector && (
+                          <div style={{ fontSize: 8, letterSpacing: 2, color: '#bbb', textTransform: 'uppercase', marginTop: 2 }}>
+                            {a.sector}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div style={{
-                      padding:'4px 12px', fontSize:8, letterSpacing:3, fontWeight:500,
-                      background:rc.bg, color:rc.text, border:`1px solid ${rc.border}`,
+                      padding: '5px 14px', fontSize: 9, letterSpacing: 3, fontWeight: 500,
+                      background: rc.bg, color: rc.text, border: `1px solid ${rc.border}`,
+                      textTransform: 'uppercase',
                     }}>
                       {a.rating}
                     </div>
                   </div>
 
-                  <div style={{
-                    fontFamily:"'Cormorant Garamond',serif",
-                    fontSize:24, fontWeight:400, color:'#f0ece4',
-                    lineHeight:1.25, marginBottom:16,
-                  }}>
+                  {/* Title */}
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 400, color: '#1a1a1a', lineHeight: 1.3, marginBottom: 12 }}>
                     {a.title}
                   </div>
 
+                  {/* Description */}
                   {a.description && (
-                    <div style={{ fontSize:11, color:'#3a3a3a', lineHeight:1.8, marginBottom:24 }}>
+                    <div style={{ fontSize: 11, color: '#888', lineHeight: 1.8, marginBottom: 20 }}>
                       {a.description}
                     </div>
                   )}
 
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:24 }}>
-                    {a.sector && (
-                      <span style={{ fontSize:8, letterSpacing:2, color:'#2a2a2a', border:'1px solid #1c1c1c', padding:'4px 10px', textTransform:'uppercase' }}>
-                        {a.sector}
-                      </span>
-                    )}
-                    {a.analyst && (
-                      <span style={{ fontSize:8, letterSpacing:2, color:'#2a2a2a', border:'1px solid #1c1c1c', padding:'4px 10px', textTransform:'uppercase' }}>
-                        {a.analyst}
-                      </span>
-                    )}
-                  </div>
-
+                  {/* Prices */}
                   {(a.current_price || a.price_target) && (
-                    <div style={{
-                      display:'grid', gridTemplateColumns:'1fr 1fr',
-                      gap:1, marginBottom:28,
-                      border:'1px solid #1c1c1c', overflow:'hidden',
-                    }}>
+                    <div className="price-grid" style={{ display: 'grid', gridTemplateColumns: upside ? '1fr 1fr 1fr' : '1fr 1fr', gap: 4, marginBottom: 20 }}>
                       {a.current_price && (
-                        <div style={{ padding:'16px 20px', background:'#0a0a0a' }}>
-                          <div style={{ fontSize:8, letterSpacing:3, color:'#2a2a2a', textTransform:'uppercase', marginBottom:8 }}>Aktuell</div>
-                          <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, color:'#d4cfc8', fontWeight:400 }}>
+                        <div className="price-box">
+                          <div style={{ fontSize: 8, letterSpacing: 2, color: '#bbb', textTransform: 'uppercase', marginBottom: 6 }}>Kurs</div>
+                          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: '#1a1a1a', fontWeight: 400 }}>
                             ${Number(a.current_price).toLocaleString('de-DE')}
                           </div>
                         </div>
                       )}
                       {a.price_target && (
-                        <div style={{ padding:'16px 20px', background:'#0a0a0a' }}>
-                          <div style={{ fontSize:8, letterSpacing:3, color:'#2a2a2a', textTransform:'uppercase', marginBottom:8 }}>Kursziel</div>
-                          <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, color:'#f5c842', fontWeight:400 }}>
+                        <div className="price-box">
+                          <div style={{ fontSize: 8, letterSpacing: 2, color: '#bbb', textTransform: 'uppercase', marginBottom: 6 }}>Kursziel</div>
+                          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: '#b8962e', fontWeight: 400 }}>
                             ${Number(a.price_target).toLocaleString('de-DE')}
+                          </div>
+                        </div>
+                      )}
+                      {upside && (
+                        <div className="price-box">
+                          <div style={{ fontSize: 8, letterSpacing: 2, color: '#bbb', textTransform: 'uppercase', marginBottom: 6 }}>Upside</div>
+                          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 400, color: Number(upside) >= 0 ? '#1a8a54' : '#c0392b' }}>
+                            {Number(upside) >= 0 ? '+' : ''}{upside}%
                           </div>
                         </div>
                       )}
                     </div>
                   )}
 
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  {/* Footer */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, borderTop: '1px solid #f0ece4', flexWrap: 'wrap', gap: 10 }}>
                     {pdfUrl ? (
                       <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="pdf-btn">
-                        <span style={{ fontSize:12 }}>↓</span> Report öffnen
+                        <span>↓</span> Report öffnen
                       </a>
-                    ) : (
-                      <div />
-                    )}
-                    <div style={{ fontSize:9, color:'#222', letterSpacing:1 }}>
-                      {new Date(a.created_at).toLocaleDateString('de-DE', { day:'2-digit', month:'short', year:'numeric' })}
+                    ) : <div />}
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                      {a.analyst && <span className="tag">{a.analyst}</span>}
+                      <span style={{ fontSize: 9, color: '#ccc', letterSpacing: 1 }}>
+                        {new Date(a.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -248,15 +290,18 @@ export default async function HomePage() {
         )}
       </main>
 
-      <footer style={{ marginTop:80, borderTop:'1px solid #141414', padding:'32px 48px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:16 }}>
-          <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:16, color:'#222' }}>Alpha Desk</div>
-          <div style={{ fontSize:8, letterSpacing:2, color:'#1a1a1a', textTransform:'uppercase' }}>
-            © {new Date().getFullYear()} · All rights reserved
+      {/* Footer */}
+      <footer style={{ background: '#fff', borderTop: '1px solid #e8e3d8' }}>
+        <div className="footer-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: '#1a1a1a', fontWeight: 600 }}>Alpha Desk</div>
+            <div style={{ fontSize: 8, letterSpacing: 2, color: '#ccc', textTransform: 'uppercase' }}>
+              © {new Date().getFullYear()}
+            </div>
           </div>
-        </div>
-        <div style={{ fontSize:8, letterSpacing:2, color:'#1a1a1a', textTransform:'uppercase' }}>
-          Institutional Research Platform
+          <div style={{ fontSize: 8, letterSpacing: 2, color: '#ccc', textTransform: 'uppercase' }}>
+            Institutional Research Platform
+          </div>
         </div>
       </footer>
     </>
