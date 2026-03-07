@@ -1,227 +1,118 @@
-'use client'
+import { createClient } from '@/lib/supabase/server'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+const RATING_COLOR: Record<string, string> = {
+  BUY:   '#4ec994',
+  HOLD:  '#f5c842',
+  SELL:  '#e05555',
+  WATCH: '#888',
+}
 
-function LoginPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const redirectTo = searchParams.get('redirectTo') || '/admin'
-  const supabase = createClient()
+export const revalidate = 60
 
-  const [email, setEmail]         = useState('')
-  const [password, setPassword]   = useState('')
-  const [error, setError]         = useState('')
-  const [loading, setLoading]     = useState(false)
-  const [attempts, setAttempts]   = useState(0)
-  const [locked, setLocked]       = useState(false)
-  const [lockUntil, setLockUntil] = useState(0)
-  const [secs, setSecs]           = useState(0)
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) router.replace('/admin')
-    })
-  }, [])
-
-  useEffect(() => {
-    if (!locked) return
-    const id = setInterval(() => {
-      const remaining = Math.ceil((lockUntil - Date.now()) / 1000)
-      if (remaining <= 0) { setLocked(false); setAttempts(0); setError('') }
-      else setSecs(remaining)
-    }, 500)
-    return () => clearInterval(id)
-  }, [locked, lockUntil])
-
-  const handleLogin = async () => {
-    if (locked || loading) return
-    if (!email.trim() || !password.trim()) { setError('Bitte E-Mail und Passwort eingeben.'); return }
-    if (attempts >= 5) {
-      const until = Date.now() + 60000
-      setLocked(true); setLockUntil(until); setSecs(60)
-      setError('Zu viele Versuche. 60 Sekunden gesperrt.'); return
-    }
-    setLoading(true); setError('')
-    const { error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-    if (authError) {
-      const next = attempts + 1; setAttempts(next)
-      if (next >= 5) {
-        const until = Date.now() + 60000
-        setLocked(true); setLockUntil(until); setSecs(60)
-        setError('Zu viele Versuche. 60 Sekunden gesperrt.')
-      } else {
-        setError(`Falsche Anmeldedaten. Noch ${5 - next} Versuch${5 - next !== 1 ? 'e' : ''}.`)
-      }
-    } else {
-      router.replace(redirectTo)
-    }
-    setLoading(false)
-  }
+export default async function HomePage() {
+  const supabase = await createClient()
+  const { data: analyses } = await supabase
+    .from('analyses')
+    .select('*')
+    .eq('published', true)
+    .order('created_at', { ascending: false })
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&display=swap');
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #141414; font-family: 'DM Mono', monospace; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        input:-webkit-autofill,
-        input:-webkit-autofill:hover,
-        input:-webkit-autofill:focus {
-          -webkit-box-shadow: 0 0 0 100px #1e1e1e inset !important;
-          -webkit-text-fill-color: #fff !important;
-          caret-color: #f5c842;
-        }
+        body { background: #0a0a0a; color: #e8e0d0; font-family: 'DM Mono', monospace; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: #111; border: 1px solid #1e1e1e; padding: 32px; transition: border-color .2s, transform .2s; animation: fadeUp .4s ease both; }
+        .card:hover { border-color: #f5c842; transform: translateY(-2px); }
+        .badge { display: inline-block; padding: 3px 10px; font-size: 9px; letter-spacing: 3px; font-weight: 500; border-radius: 1px; }
       `}</style>
 
-      <div style={{
-        minHeight: '100vh', background: '#141414',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 24,
-      }}>
-        <div style={{
-          width: '100%', maxWidth: 440,
-          background: '#1a1a1a',
-          border: '1px solid #2a2a2a',
-          padding: '56px 48px',
-          animation: 'fadeUp .45s ease',
-        }}>
+      {/* Header */}
+      <header style={{ borderBottom: '1px solid #1a1a1a', padding: '24px 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: '#fff', letterSpacing: -0.5 }}>Alpha Desk</div>
+          <div style={{ fontSize: 9, letterSpacing: 4, color: '#444', textTransform: 'uppercase', marginTop: 4 }}>Institutional Research</div>
+        </div>
+        <div style={{ width: 32, height: 2, background: '#f5c842' }} />
+      </header>
 
-          {/* Logo */}
-          <div style={{ marginBottom: 48 }}>
-            <div style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 32, fontWeight: 900, color: '#fff',
-              letterSpacing: -1, marginBottom: 10,
-            }}>Alpha Desk</div>
-            <div style={{ width: 40, height: 3, background: '#f5c842', borderRadius: 1 }} />
-          </div>
-
-          <div style={{ fontSize: 10, letterSpacing: 4, color: '#555', textTransform: 'uppercase', marginBottom: 32 }}>
-            Admin Login
-          </div>
-
-          {/* Email */}
-          <div style={{ marginBottom: 20 }}>
-            <label style={{
-              display: 'block', fontSize: 10, letterSpacing: 3,
-              color: '#888', textTransform: 'uppercase', marginBottom: 10,
-            }}>E-Mail</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              disabled={locked}
-              autoComplete="email"
-              placeholder="admin@example.com"
-              style={{
-                width: '100%',
-                background: '#222',
-                border: '1px solid #333',
-                borderRadius: 2,
-                color: '#fff',
-                padding: '13px 16px',
-                fontSize: 13,
-                fontFamily: "'DM Mono', monospace",
-                outline: 'none',
-                opacity: locked ? .4 : 1,
-                transition: 'border-color .2s',
-              }}
-              onFocus={e => !locked && (e.currentTarget.style.borderColor = '#f5c842')}
-              onBlur={e => (e.currentTarget.style.borderColor = '#333')}
-            />
-          </div>
-
-          {/* Password */}
-          <div style={{ marginBottom: 32 }}>
-            <label style={{
-              display: 'block', fontSize: 10, letterSpacing: 3,
-              color: '#888', textTransform: 'uppercase', marginBottom: 10,
-            }}>Passwort</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              disabled={locked}
-              autoComplete="current-password"
-              placeholder="••••••••••••"
-              style={{
-                width: '100%',
-                background: '#222',
-                border: '1px solid #333',
-                borderRadius: 2,
-                color: '#fff',
-                padding: '13px 16px',
-                fontSize: 13,
-                fontFamily: "'DM Mono', monospace",
-                outline: 'none',
-                opacity: locked ? .4 : 1,
-                transition: 'border-color .2s',
-                letterSpacing: 3,
-              }}
-              onFocus={e => !locked && (e.currentTarget.style.borderColor = '#f5c842')}
-              onBlur={e => (e.currentTarget.style.borderColor = '#333')}
-            />
-          </div>
-
-          {/* Error */}
-          {error && (
-            <div style={{
-              fontSize: 11, color: locked ? '#ff6b6b' : '#ffaa44',
-              background: locked ? 'rgba(255,107,107,0.08)' : 'rgba(255,170,68,0.08)',
-              border: `1px solid ${locked ? 'rgba(255,107,107,0.25)' : 'rgba(255,170,68,0.25)'}`,
-              padding: '10px 14px', marginBottom: 20, lineHeight: 1.5,
-              borderRadius: 2,
-            }}>
-              {locked ? `🔒 ${error} (${secs}s)` : `⚠ ${error}`}
-            </div>
-          )}
-
-          {/* Button */}
-          <button
-            onClick={handleLogin}
-            disabled={loading || locked}
-            style={{
-              width: '100%',
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 11, letterSpacing: 4, textTransform: 'uppercase',
-              background: loading || locked ? '#2a2a2a' : '#f5c842',
-              border: 'none',
-              color: loading || locked ? '#555' : '#000',
-              padding: '16px',
-              cursor: locked || loading ? 'not-allowed' : 'pointer',
-              transition: 'all .2s',
-              fontWeight: 500,
-              borderRadius: 2,
-            }}
-            onMouseEnter={e => { if (!locked && !loading) (e.currentTarget.style.background = '#ffd84d') }}
-            onMouseLeave={e => { if (!locked && !loading) (e.currentTarget.style.background = '#f5c842') }}
-          >
-            {loading ? 'Wird geprüft…' : locked ? `Gesperrt (${secs}s)` : 'Einloggen →'}
-          </button>
-
-          {/* Footer note */}
-          <div style={{
-            marginTop: 36, fontSize: 9, letterSpacing: 2, color: '#333',
-            textAlign: 'center', lineHeight: 1.8, textTransform: 'uppercase',
-          }}>
-            Geschützt durch Supabase Auth<br />
-            Alle Versuche werden protokolliert
-          </div>
+      {/* Hero */}
+      <div style={{ padding: '64px 48px 48px', borderBottom: '1px solid #1a1a1a' }}>
+        <div style={{ fontSize: 9, letterSpacing: 5, color: '#555', textTransform: 'uppercase', marginBottom: 20 }}>Research Coverage</div>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 52, fontWeight: 300, color: '#fff', lineHeight: 1.1, maxWidth: 600 }}>
+          Equity Analysis &<br /><em style={{ color: '#f5c842' }}>Market Intelligence</em>
+        </div>
+        <div style={{ marginTop: 20, fontSize: 12, color: '#555', letterSpacing: 1 }}>
+          {analyses?.length ?? 0} published report{analyses?.length !== 1 ? 's' : ''}
         </div>
       </div>
-    </>
-  )
-}
 
-export default function Page() {
-  return (
-    <Suspense>
-      <LoginPage />
-    </Suspense>
+      {/* Grid */}
+      <main style={{ padding: '48px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+        {!analyses || analyses.length === 0 ? (
+          <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '80px 0', color: '#333', fontSize: 12, letterSpacing: 2, textTransform: 'uppercase' }}>
+            Keine Analysen verfügbar
+          </div>
+        ) : analyses.map((a, i) => (
+          <div key={a.id} className="card" style={{ animationDelay: `${i * 0.05}s` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+              <div style={{ fontSize: 11, letterSpacing: 3, color: '#555', textTransform: 'uppercase' }}>{a.ticker}</div>
+              <span className="badge" style={{ background: `${RATING_COLOR[a.rating]}18`, color: RATING_COLOR[a.rating], border: `1px solid ${RATING_COLOR[a.rating]}40` }}>
+                {a.rating}
+              </span>
+            </div>
+
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 400, color: '#fff', lineHeight: 1.3, marginBottom: 12 }}>
+              {a.title}
+            </div>
+
+            {a.description && (
+              <div style={{ fontSize: 11, color: '#555', lineHeight: 1.7, marginBottom: 20 }}>{a.description}</div>
+            )}
+
+            <div style={{ display: 'flex', gap: 20, fontSize: 10, color: '#444', letterSpacing: 1, marginBottom: 20 }}>
+              {a.sector && <span>{a.sector}</span>}
+              {a.analyst && <span>by {a.analyst}</span>}
+            </div>
+
+            {(a.current_price || a.price_target) && (
+              <div style={{ display: 'flex', gap: 24, padding: '14px 0', borderTop: '1px solid #1a1a1a', borderBottom: '1px solid #1a1a1a', marginBottom: 20 }}>
+                {a.current_price && (
+                  <div>
+                    <div style={{ fontSize: 9, letterSpacing: 2, color: '#444', textTransform: 'uppercase', marginBottom: 4 }}>Kurs</div>
+                    <div style={{ fontSize: 14, color: '#e8e0d0' }}>${a.current_price}</div>
+                  </div>
+                )}
+                {a.price_target && (
+                  <div>
+                    <div style={{ fontSize: 9, letterSpacing: 2, color: '#444', textTransform: 'uppercase', marginBottom: 4 }}>Kursziel</div>
+                    <div style={{ fontSize: 14, color: '#f5c842' }}>${a.price_target}</div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {a.pdf_path && (
+              <a href={a.pdf_path} target="_blank" rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 10, letterSpacing: 3, textTransform: 'uppercase', color: '#f5c842', textDecoration: 'none', marginTop: 4 }}>
+                ↓ Report öffnen
+              </a>
+            )}
+
+            <div style={{ marginTop: 20, fontSize: 9, color: '#333', letterSpacing: 1 }}>
+              {new Date(a.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}
+            </div>
+          </div>
+        ))}
+      </main>
+
+      {/* Footer */}
+      <footer style={{ borderTop: '1px solid #1a1a1a', padding: '24px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: 9, letterSpacing: 2, color: '#333', textTransform: 'uppercase' }}>Alpha Desk © {new Date().getFullYear()}</div>
+        <a href="/login" style={{ fontSize: 9, letterSpacing: 2, color: '#333', textTransform: 'uppercase', textDecoration: 'none' }}>Admin</a>
+      </footer>
+    </>
   )
 }
