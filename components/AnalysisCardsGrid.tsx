@@ -387,9 +387,9 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
           )}
 
           {displayUpside != null && (
-            <div className="ac-price-cell">
-              <div className="ac-price-label">UPSIDE</div>
-              <div className={`ac-price-val ${displayUpside >= 0 ? 'up' : 'dn'}`}>
+            <div className="ac-price-cell" style={{ background: displayUpside >= 0 ? 'rgba(21,128,61,0.04)' : 'rgba(220,38,38,0.04)' }}>
+              <div className="ac-price-label">UPSIDE POTENZIAL</div>
+              <div className={`ac-price-val ${displayUpside >= 0 ? 'up' : 'dn'}`} style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>
                 {displayUpside >= 0 ? '+' : ''}{displayUpside.toFixed(1)}%
               </div>
             </div>
@@ -413,11 +413,11 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         <div className="ac-footer">
           {a.pdfUrl ? (
             <a href={a.pdfUrl} target="_blank" rel="noopener noreferrer" className="ac-btn">
-              <span>↓</span> Report öffnen
+              <span>↗</span> VIEW FULL REPORT
             </a>
           ) : (
             <button className="ac-btn ac-btn-ghost" disabled>
-              <span>○</span> Bald verfügbar
+              <span>◷</span> COMING SOON
             </button>
           )}
 
@@ -479,8 +479,14 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
 
         .ac-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-          gap: 24px;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 20px;
+        }
+        @media (max-width: 1200px) {
+          .ac-grid { grid-template-columns: repeat(3, 1fr) !important; }
+        }
+        @media (max-width: 860px) {
+          .ac-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
 
         .ac-card {
@@ -597,15 +603,16 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
         .ac-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
         .ac-btn {
           display:inline-flex; align-items:center; gap:8px;
-          padding:10px 20px; background:#0a1628; color:#c9a227;
+          padding:12px 22px; background:#0a1628; color:#c9a227;
           font-family:'DM Mono',monospace; font-size:9px;
           letter-spacing:3px; text-transform:uppercase;
-          text-decoration:none; border:none; cursor:pointer; font-weight:500;
+          text-decoration:none; border:none; cursor:pointer; font-weight:600;
           transition:background .2s, color .2s, transform .15s;
+          border: 1px solid rgba(201,162,39,0.25);
         }
-        .ac-btn:hover { background:#c9a227; color:#0a1628; transform:translateY(-1px); }
-        .ac-btn-ghost { background:#f8fafc; color:#94a3b8; border:1px solid #e2e8f0; cursor:default; }
-        .ac-btn-ghost:hover { background:#f8fafc; color:#94a3b8; transform:none; }
+        .ac-btn:hover { background:#c9a227; color:#0a1628; transform:translateY(-1px); border-color: #c9a227; }
+        .ac-btn-ghost { background:#f8fafc; color:#cbd5e1; border:1px solid #e2e8f0; cursor:default; }
+        .ac-btn-ghost:hover { background:#f8fafc; color:#cbd5e1; transform:none; border-color:#e2e8f0; }
 
         .ac-meta      { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
         .ac-meta-tag  {
@@ -645,7 +652,7 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
         }
 
         @media (max-width:640px) {
-          .ac-grid { grid-template-columns:1fr; gap:14px; }
+          .ac-grid { grid-template-columns:1fr !important; gap:14px; }
           .ac-prices { grid-template-columns:1fr 1fr; }
           .ac-price-cell:nth-child(3) { grid-column:1/-1; border-top:1px solid #f1f5f9; border-right:none; }
           .ac-footer { flex-direction:column; align-items:flex-start; }

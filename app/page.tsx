@@ -96,14 +96,14 @@ export default function HomePage() {
         </div>
 
         {/* Hero */}
-        <div style={{ textAlign: 'center', padding: '44px 48px 48px', animation: 'fadeUp 0.55s ease' }}>
-          <div style={{ fontSize: 9, letterSpacing: 5, color: 'rgba(201,162,39,0.75)', marginBottom: 16, textTransform: 'uppercase' }}>
+        <div style={{ textAlign: 'center', padding: '26px 48px 28px', animation: 'fadeUp 0.55s ease' }}>
+          <div style={{ fontSize: 9, letterSpacing: 5, color: 'rgba(201,162,39,0.75)', marginBottom: 10, textTransform: 'uppercase' }}>
             INSTITUTIONAL  EQUITY  RESEARCH
           </div>
-          <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, fontSize: 54, color: '#fff', lineHeight: 1.1, marginBottom: 16 }}>
+          <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, fontSize: 46, color: '#fff', lineHeight: 1.1, marginBottom: 10 }}>
             Equity Analysis &amp;&nbsp;<em style={{ fontStyle: 'italic', color: '#c9a84c' }}>Market Intelligence</em>
           </h1>
-          <div style={{ width: 56, height: 2, background: '#c9a227', margin: '0 auto 16px' }} />
+          <div style={{ width: 56, height: 2, background: '#c9a227', margin: '0 auto 10px' }} />
           <div style={{ fontSize: 10, letterSpacing: 4, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase' }}>
             PROFESSIONAL RESEARCH · INDEPENDENT ANALYSIS
           </div>
@@ -127,8 +127,40 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* ── ANALYST TRACK RECORD BAR ── */}
+      <div style={{
+        background: 'rgba(201,162,39,0.07)',
+        borderBottom: '1px solid rgba(201,162,39,0.2)',
+        padding: '12px 48px',
+        display: 'flex', alignItems: 'center', gap: 0, overflowX: 'auto',
+      }}>
+        <div style={{ fontSize: 9, letterSpacing: 4, color: 'rgba(201,162,39,0.6)', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace', marginRight: 32, whiteSpace: 'nowrap' }}>
+          ANALYST TRACK RECORD
+        </div>
+        {[
+          { val: '71%',   lbl: 'TREFFERQUOTE',  color: '#4ec994' },
+          { val: '+42%',  lbl: 'Ø RENDITE',      color: '#4ec994' },
+          { val: '38',    lbl: 'REPORTS',        color: '#e8e6e0' },
+          { val: '12 Mo', lbl: 'Ø HALTEDAUER',   color: '#e8e6e0' },
+          { val: '94%',   lbl: 'BUY ACCURACY',   color: '#4ec994' },
+        ].map((m, i) => (
+          <div key={i} style={{
+            display: 'flex', flexDirection: 'column', gap: 2,
+            paddingLeft: 24, marginLeft: i === 0 ? 0 : 24,
+            borderLeft: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.08)',
+          }}>
+            <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: m.color, lineHeight: 1 }}>{m.val}</span>
+            <span style={{ fontSize: 8, letterSpacing: 2, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace' }}>{m.lbl}</span>
+          </div>
+        ))}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 20, paddingLeft: 32 }}>
+          <a href="/methodology" style={{ fontSize: 8, letterSpacing: 2, color: 'rgba(201,162,39,0.55)', textDecoration: 'none', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace', borderBottom: '1px solid rgba(201,162,39,0.25)', paddingBottom: 1, whiteSpace: 'nowrap' }}>Methodology →</a>
+          <a href="/disclaimer"  style={{ fontSize: 8, letterSpacing: 2, color: 'rgba(255,255,255,0.2)',  textDecoration: 'none', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace', borderBottom: '1px solid rgba(255,255,255,0.08)',  paddingBottom: 1, whiteSpace: 'nowrap' }}>Disclaimer</a>
+        </div>
+      </div>
+
       {/* ── MAIN ── */}
-      <main style={{ maxWidth: 1200, margin: '0 auto', padding: '52px 48px 80px' }}>
+      <main style={{ maxWidth: 1400, margin: '0 auto', padding: '40px 48px 80px' }}>
 
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 32 }}>
           <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 26, fontWeight: 400 }}>
