@@ -104,14 +104,21 @@ const SECTOR_IMAGES: Record<string, string> = {
   default:             'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop',
 }
 
+function normalizeStr(str: string): string {
+  return str.toLowerCase()
+    .replace(/ü/g, "u").replace(/ö/g, "o").replace(/ä/g, "a").replace(/ß/g, "ss")
+}
+
 function getSectorImage(a: Analysis): string {
-  const s = (a.sector ?? '').toLowerCase()
+  const s = normalizeStr(a.sector ?? '')
   for (const [key, url] of Object.entries(SECTOR_IMAGES)) {
-    if (s.includes(key)) return url
+    if (key === 'default') continue
+    if (s.includes(normalizeStr(key))) return url
   }
-  const t = (a.title ?? '').toLowerCase()
+  const t = normalizeStr(a.title ?? '')
   for (const [key, url] of Object.entries(SECTOR_IMAGES)) {
-    if (t.includes(key)) return url
+    if (key === 'default') continue
+    if (t.includes(normalizeStr(key))) return url
   }
   return SECTOR_IMAGES.default
 }
