@@ -181,6 +181,60 @@ const GEO_IMAGE_MAP: Record<string, string> = {
 // Fallback
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop'
 
+// Fuzzy Fallback fuer alte Freitext-Sektoren (rueckwaertskompatibel)
+const FUZZY_FALLBACK: [string, string][] = [
+  ['mobil',        'https://images.unsplash.com/photo-1609520778382-0f2afc1ebb26?w=700&q=80&fit=crop'],
+  ['mietwagen',    'https://images.unsplash.com/photo-1609520778382-0f2afc1ebb26?w=700&q=80&fit=crop'],
+  ['autovermiet',  'https://images.unsplash.com/photo-1609520778382-0f2afc1ebb26?w=700&q=80&fit=crop'],
+  ['automobil',    'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&q=80&fit=crop'],
+  ['fahrzeug',     'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&q=80&fit=crop'],
+  ['technolog',    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop'],
+  ['software',     'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=700&q=80&fit=crop'],
+  ['halbleiter',   'https://images.unsplash.com/photo-1601132359864-c974e79890ac?w=700&q=80&fit=crop'],
+  ['versicherung', 'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=700&q=80&fit=crop'],
+  ['insurance',    'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=700&q=80&fit=crop'],
+  ['bank',         'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop'],
+  ['finanz',       'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop'],
+  ['immobil',      'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop'],
+  ['erneuerbar',   'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=700&q=80&fit=crop'],
+  ['energie',      'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=700&q=80&fit=crop'],
+  ['pharma',       'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=700&q=80&fit=crop'],
+  ['biotech',      'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=700&q=80&fit=crop'],
+  ['gesundheit',   'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80&fit=crop'],
+  ['medizin',      'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80&fit=crop'],
+  ['konsum',       'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop'],
+  ['handel',       'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop'],
+  ['retail',       'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop'],
+  ['lebensmittel', 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700&q=80&fit=crop'],
+  ['food',         'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700&q=80&fit=crop'],
+  ['industrie',    'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=700&q=80&fit=crop'],
+  ['maschinenbau', 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=700&q=80&fit=crop'],
+  ['chemie',       'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80&fit=crop'],
+  ['telekom',      'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&q=80&fit=crop'],
+  ['medien',       'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=700&q=80&fit=crop'],
+  ['media',        'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=700&q=80&fit=crop'],
+  ['transport',    'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=700&q=80&fit=crop'],
+  ['logistik',     'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=700&q=80&fit=crop'],
+  ['luftfahrt',    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=700&q=80&fit=crop'],
+  ['ruestung',     'https://images.unsplash.com/photo-1547483238-f400e65ccd56?w=700&q=80&fit=crop'],
+  ['defense',      'https://images.unsplash.com/photo-1547483238-f400e65ccd56?w=700&q=80&fit=crop'],
+  ['rohstoff',     'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop'],
+  ['bergbau',      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop'],
+  ['ecommerce',    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=700&q=80&fit=crop'],
+  ['luxury',       'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=700&q=80&fit=crop'],
+  ['fashion',      'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=700&q=80&fit=crop'],
+  ['gaming',       'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=700&q=80&fit=crop'],
+  ['krypto',       'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=700&q=80&fit=crop'],
+  ['crypto',       'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=700&q=80&fit=crop'],
+  ['agrar',        'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=700&q=80&fit=crop'],
+]
+
+function normalize(s: string): string {
+  return s.toLowerCase()
+    .replace(/ü/g, 'u').replace(/ö/g, 'o').replace(/ä/g, 'a').replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]/g, '')
+}
+
 function getCardImage(a: Analysis): string {
   const category = a.category ?? 'equity'
   const sector   = a.sector ?? ''
@@ -188,8 +242,19 @@ function getCardImage(a: Analysis): string {
   if (category === 'geo') {
     return GEO_IMAGE_MAP[sector] ?? DEFAULT_IMAGE
   }
-  // Equity: exaktes Matching auf den Dropdown-Wert
-  return SECTOR_IMAGE_MAP[sector] ?? DEFAULT_IMAGE
+
+  // 1. Exaktes Matching auf Dropdown-Wert (neue Analysen)
+  if (SECTOR_IMAGE_MAP[sector]) return SECTOR_IMAGE_MAP[sector]
+
+  // 2. Fuzzy Fallback fuer alte Freitext-Sektoren
+  const sNorm = normalize(sector)
+  const tNorm = normalize(a.title ?? '')
+  for (const [key, url] of FUZZY_FALLBACK) {
+    const k = normalize(key)
+    if (sNorm.includes(k) || tNorm.includes(k)) return url
+  }
+
+  return DEFAULT_IMAGE
 }
 
 // ─── Rating config ────────────────────────────────────────────────────────────
