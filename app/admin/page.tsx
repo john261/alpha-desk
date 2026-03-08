@@ -34,7 +34,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 }
 
 // ── Sektoren mit exakten Werten (für Dropdown + Bild-Mapping) ───────────────
-export const SECTORS = [
+const SECTORS = [
   { value: 'Technologie',                  label: 'Technologie' },
   { value: 'Software & IT',                label: 'Software & IT' },
   { value: 'Halbleiter',                   label: 'Halbleiter' },
