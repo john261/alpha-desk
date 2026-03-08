@@ -79,11 +79,10 @@ export default function HomePage() {
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 48px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          <div style={{ width: 80 }} />
           <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 24, fontWeight: 400, color: '#fff', letterSpacing: 3 }}>
             Alpha<span style={{ color: '#c9a227' }}>Desk</span>
           </div>
-          <div style={{ width: 80, display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <a href="/admin" className="nav-admin">ADMIN</a>
           </div>
         </div>
