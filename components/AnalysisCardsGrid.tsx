@@ -439,6 +439,24 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
 
 // ─── Grid ─────────────────────────────────────────────────────────────────────
 export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }) {
+  const [activeTab, setActiveTab] = useState<'all' | 'equity' | 'geo'>('all')
+
+  const counts = {
+    all:    analyses.length,
+    equity: analyses.filter(a => (a.category ?? 'equity') === 'equity').length,
+    geo:    analyses.filter(a => (a.category ?? 'equity') === 'geo').length,
+  }
+
+  const filtered = activeTab === 'all'
+    ? analyses
+    : analyses.filter(a => (a.category ?? 'equity') === activeTab)
+
+  const TABS: { key: 'all' | 'equity' | 'geo'; label: string; color: string }[] = [
+    { key: 'all',    label: 'ALL',              color: '#94a3b8' },
+    { key: 'equity', label: 'EQUITY RESEARCH',  color: '#c9a227' },
+    { key: 'geo',    label: 'MACRO / GEOPOLITICS', color: '#38bdf8' },
+  ]
+
   if (!analyses || analyses.length === 0) {
     return (
       <div style={{
@@ -597,18 +615,71 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
         }
         .ac-meta-date { font-size:8px; color:#cbd5e1; letter-spacing:1px; font-family:'DM Mono',monospace; }
 
+        /* Filter Tabs */
+        .ac-tabs {
+          display: flex; gap: 0; margin-bottom: 24px;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .ac-tab {
+          font-family: 'DM Mono', monospace;
+          font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+          background: transparent; border: none;
+          border-bottom: 2px solid transparent;
+          color: #94a3b8; padding: 12px 24px;
+          cursor: pointer; margin-bottom: -1px;
+          transition: all 0.2s ease;
+          display: flex; align-items: center; gap: 7px;
+        }
+        .ac-tab:hover { color: var(--tab-color, #94a3b8); }
+        .ac-tab-active {
+          color: var(--tab-color, #94a3b8) !important;
+          border-bottom-color: var(--tab-color, #94a3b8) !important;
+        }
+        .ac-tab-count {
+          font-size: 8px; opacity: 0.6; letter-spacing: 1px;
+        }
+
         @media (max-width:640px) {
           .ac-grid { grid-template-columns:1fr; gap:14px; }
           .ac-prices { grid-template-columns:1fr 1fr; }
           .ac-price-cell:nth-child(3) { grid-column:1/-1; border-top:1px solid #f1f5f9; border-right:none; }
           .ac-footer { flex-direction:column; align-items:flex-start; }
+          .ac-tabs { gap: 0; }
+          .ac-tab { padding: 10px 14px; font-size: 8px; }
         }
       `}</style>
 
-      <div className="ac-grid">
-        {analyses.map((a, i) => (
-          <AnalysisCard key={a.id} a={a} idx={i} />
+      {/* ── Filter Tabs ── */}
+      <div className="ac-tabs">
+        {TABS.map(t => (
+          <button
+            key={t.key}
+            className={"ac-tab" + (activeTab === t.key ? " ac-tab-active" : "")}
+            style={{
+              '--tab-color': t.color,
+            } as React.CSSProperties}
+            onClick={() => setActiveTab(t.key)}
+          >
+            {t.label}
+            <span className="ac-tab-count">({counts[t.key]})</span>
+          </button>
         ))}
+      </div>
+
+      <div className="ac-grid">
+        {filtered.length === 0 ? (
+          <div style={{
+            gridColumn: '1/-1', textAlign: 'center', padding: '60px 0',
+            color: '#475569', fontFamily: "'DM Mono',monospace",
+            fontSize: 10, letterSpacing: 3, textTransform: 'uppercase',
+          }}>
+            Keine Reports in dieser Kategorie
+          </div>
+        ) : (
+          filtered.map((a, i) => (
+            <AnalysisCard key={a.id} a={a} idx={i} />
+          ))
+        )}
       </div>
     </>
   )
