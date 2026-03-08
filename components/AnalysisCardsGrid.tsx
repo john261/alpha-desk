@@ -67,16 +67,18 @@ const SECTOR_IMAGE_MAP: Record<string, string> = {
     'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=700&q=80&fit=crop',
   // Halbleiter — Chip Nahaufnahme
   'Halbleiter':
-    'https://images.unsplash.com/photo-1601132359864-c974e79890ac?w=700&q=80&fit=crop',
+    'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=700&q=80&fit=crop',
   // Automobil & OEM — Autofabrik/Produktion
   'Automobil & OEM':
-    'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&q=80&fit=crop',
+    'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=700&q=80&fit=crop',
+  'Automobil':
+    'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=700&q=80&fit=crop',
   // Autovermietung & Mobilität — Fahrzeugflotte/Parkhaus
   'Autovermietung & Mobilität':
-    'https://images.unsplash.com/photo-1609520778382-0f2afc1ebb26?w=700&q=80&fit=crop',
+    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=80&fit=crop',
   // Versicherung — Schirm/Schutz
   'Versicherung':
-    'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=700&q=80&fit=crop',
+    'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=700&q=80&fit=crop',
   // Banken & Finanzen — Frankfurter Skyline/Bankenviertel
   'Banken & Finanzen':
     'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop',
@@ -121,7 +123,7 @@ const SECTOR_IMAGE_MAP: Record<string, string> = {
     'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=700&q=80&fit=crop',
   // Rüstung & Defense — Militär/Defense
   'Rüstung & Defense':
-    'https://images.unsplash.com/photo-1547483238-f400e65ccd56?w=700&q=80&fit=crop',
+    'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=700&q=80&fit=crop',
   // Rohstoffe & Bergbau — Bergwerk/Mine
   'Rohstoffe & Bergbau':
     'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop',
@@ -159,17 +161,17 @@ const GEO_IMAGE_MAP: Record<string, string> = {
   'Naher Osten':
     'https://images.unsplash.com/photo-1512632578888-169bbbc64f33?w=700&q=80&fit=crop',
   'Russland & Ukraine':
-    'https://images.unsplash.com/photo-1580974852861-c381510bc98a?w=700&q=80&fit=crop',
+    'https://images.unsplash.com/photo-1604537529428-15bcbeecfe4d?w=700&q=80&fit=crop',
   'NATO & Verteidigung':
-    'https://images.unsplash.com/photo-1547483238-f400e65ccd56?w=700&q=80&fit=crop',
+    'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=700&q=80&fit=crop',
   'Handelskrieg & Zölle':
     'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=700&q=80&fit=crop',
   'Rohstoff-Geopolitik':
     'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop',
   'Währungskrisen':
-    'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=700&q=80&fit=crop',
+    'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=700&q=80&fit=crop',
   'Sanktionen & Embargos':
-    'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=700&q=80&fit=crop',
+    'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=700&q=80&fit=crop',
   'Globale Lieferketten':
     'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=700&q=80&fit=crop',
   'Energiesicherheit':
@@ -183,16 +185,16 @@ const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1611974789855-9c2a0a723
 
 // Fuzzy Fallback fuer alte Freitext-Sektoren (rueckwaertskompatibel)
 const FUZZY_FALLBACK: [string, string][] = [
-  ['mobil',        'https://images.unsplash.com/photo-1609520778382-0f2afc1ebb26?w=700&q=80&fit=crop'],
-  ['mietwagen',    'https://images.unsplash.com/photo-1609520778382-0f2afc1ebb26?w=700&q=80&fit=crop'],
-  ['autovermiet',  'https://images.unsplash.com/photo-1609520778382-0f2afc1ebb26?w=700&q=80&fit=crop'],
-  ['automobil',    'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&q=80&fit=crop'],
-  ['fahrzeug',     'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&q=80&fit=crop'],
+  ['mobil',        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=80&fit=crop'],
+  ['mietwagen',    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=80&fit=crop'],
+  ['autovermiet',  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=80&fit=crop'],
+  ['automobil',    'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=700&q=80&fit=crop'],
+  ['fahrzeug',     'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=700&q=80&fit=crop'],
   ['technolog',    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop'],
   ['software',     'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=700&q=80&fit=crop'],
-  ['halbleiter',   'https://images.unsplash.com/photo-1601132359864-c974e79890ac?w=700&q=80&fit=crop'],
-  ['versicherung', 'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=700&q=80&fit=crop'],
-  ['insurance',    'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=700&q=80&fit=crop'],
+  ['halbleiter',   'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=700&q=80&fit=crop'],
+  ['versicherung', 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=700&q=80&fit=crop'],
+  ['insurance',    'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=700&q=80&fit=crop'],
   ['bank',         'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop'],
   ['finanz',       'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop'],
   ['immobil',      'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop'],
@@ -216,8 +218,8 @@ const FUZZY_FALLBACK: [string, string][] = [
   ['transport',    'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=700&q=80&fit=crop'],
   ['logistik',     'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=700&q=80&fit=crop'],
   ['luftfahrt',    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=700&q=80&fit=crop'],
-  ['ruestung',     'https://images.unsplash.com/photo-1547483238-f400e65ccd56?w=700&q=80&fit=crop'],
-  ['defense',      'https://images.unsplash.com/photo-1547483238-f400e65ccd56?w=700&q=80&fit=crop'],
+  ['ruestung',     'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=700&q=80&fit=crop'],
+  ['defense',      'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=700&q=80&fit=crop'],
   ['rohstoff',     'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop'],
   ['bergbau',      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop'],
   ['ecommerce',    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=700&q=80&fit=crop'],
