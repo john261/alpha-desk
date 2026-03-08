@@ -1,11 +1,9 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Analysis } from '@/lib/supabase/types'
-
-const AnalysisCardsGrid = dynamic(() => import('@/components/AnalysisCardsGrid'), { ssr: false })
+import AnalysisCardsGrid from '@/components/AnalysisCardsGrid'
 
 export default function HomePage() {
   const supabase = createClient()
