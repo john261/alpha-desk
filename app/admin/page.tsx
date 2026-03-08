@@ -510,12 +510,14 @@ export default function AdminPage() {
                   />
                 </div>
 
+                {isEquity && (
                 <div>
                   <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Rating</label>
                   <select {...F('rating')} className="focus-gold" style={{ ...inputStyle, cursor: 'pointer' }}>
                     {RATINGS.map(r => <option key={r} value={r}>{r}</option>)}
                   </select>
                 </div>
+                )}
 
                 {/* Title */}
                 <div style={{ gridColumn: '1/-1' }}>
