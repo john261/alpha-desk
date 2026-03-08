@@ -81,10 +81,10 @@ const SECTOR_IMAGES: [string, string][] = [
   ['fahrzeug',       'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop'],
   ['auto',           'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop'],
   // Konsumgüter — Supermarkt
-  ['konsumg',        'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=700&q=80&fit=crop'],
-  ['consumer',       'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=700&q=80&fit=crop'],
-  ['retail',         'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=700&q=80&fit=crop'],
-  ['handel',         'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=700&q=80&fit=crop'],
+  ['konsumg',        'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop'],
+  ['consumer',       'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop'],
+  ['retail',         'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop'],
+  ['handel',         'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop'],
   // Immobilien — Gebäude
   ['immobilien',     'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop'],
   ['real estate',    'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop'],
