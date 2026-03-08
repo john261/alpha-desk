@@ -56,53 +56,61 @@ function useRealtimePrice(ticker: string, priceTarget: number | null | undefined
 }
 
 // ─── Sector → Unsplash image (vollautomatisch aus sector/title) ───────────────
-const SECTOR_IMAGES: Record<string, string> = {
-  // Englisch
-  tech:           'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop',
-  technology:     'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop',
-  software:       'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=700&q=80&fit=crop',
-  finance:        'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop',
-  banking:        'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?w=700&q=80&fit=crop',
-  insurance:      'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=700&q=80&fit=crop',
-  energy:         'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=700&q=80&fit=crop',
-  health:         'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80&fit=crop',
-  pharma:         'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=700&q=80&fit=crop',
-  auto:           'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop',
-  automotive:     'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop',
-  retail:         'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=700&q=80&fit=crop',
-  real:           'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop',
-  media:          'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=700&q=80&fit=crop',
-  industrial:     'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=700&q=80&fit=crop',
-  chemical:       'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80&fit=crop',
-  telecom:        'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&q=80&fit=crop',
-  transport:      'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=700&q=80&fit=crop',
-  food:           'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700&q=80&fit=crop',
-  consumer:       'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=700&q=80&fit=crop',
-  // Deutsch
-  'technologie':       'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop',
-  'finanzen':          'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop',
-  'bank':              'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?w=700&q=80&fit=crop',
-  'versicherung':      'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=700&q=80&fit=crop',
-  'energie':           'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=700&q=80&fit=crop',
-  'gesundheit':        'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80&fit=crop',
-  'pharmazie':         'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=700&q=80&fit=crop',
-  'automobil':         'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop',
-  'fahrzeug':          'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop',
-  'handel':            'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=700&q=80&fit=crop',
-  'immobilien':        'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop',
-  'medien':            'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=700&q=80&fit=crop',
-  'industrie':         'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=700&q=80&fit=crop',
-  'chemie':            'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80&fit=crop',
-  'telekommunikation': 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&q=80&fit=crop',
-  'transport':         'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=700&q=80&fit=crop',
-  'logistik':          'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=700&q=80&fit=crop',
-  'lebensmittel':      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700&q=80&fit=crop',
-  'konsumg':           'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=700&q=80&fit=crop', // trifft "Konsumgüter"
-  'rohstoff':          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop',
-  'bergbau':           'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop',
-  'software':          'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=700&q=80&fit=crop',
-  default:             'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop',
-}
+// Jeder Sektor hat ein visuell klar unterscheidbares Bild (EN + DE)
+const SECTOR_IMAGES: [string, string][] = [
+  // Technologie — blaue Platine
+  ['tech',           'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop'],
+  ['technologi',     'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop'],
+  ['software',       'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=700&q=80&fit=crop'],
+  // Versicherung — Schirm/Schutz (klar anders)
+  ['versicherung',   'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=700&q=80&fit=crop'],
+  ['insurance',      'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=700&q=80&fit=crop'],
+  // Finanzen / Bank — Skyline
+  ['finanz',         'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop'],
+  ['finance',        'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop'],
+  ['bank',           'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop'],
+  // Energie — Windräder
+  ['energie',        'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=700&q=80&fit=crop'],
+  ['energy',         'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=700&q=80&fit=crop'],
+  // Gesundheit / Pharma — Labor
+  ['gesundheit',     'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80&fit=crop'],
+  ['health',         'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80&fit=crop'],
+  ['pharma',         'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=700&q=80&fit=crop'],
+  // Automobil — Straße/Auto
+  ['automobil',      'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop'],
+  ['fahrzeug',       'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop'],
+  ['auto',           'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop'],
+  // Konsumgüter — Supermarkt
+  ['konsumg',        'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=700&q=80&fit=crop'],
+  ['consumer',       'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=700&q=80&fit=crop'],
+  ['retail',         'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=700&q=80&fit=crop'],
+  ['handel',         'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=700&q=80&fit=crop'],
+  // Immobilien — Gebäude
+  ['immobilien',     'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop'],
+  ['real estate',    'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop'],
+  // Medien — Kamera
+  ['medien',         'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=700&q=80&fit=crop'],
+  ['media',          'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=700&q=80&fit=crop'],
+  // Industrie — Fabrik
+  ['industrie',      'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=700&q=80&fit=crop'],
+  ['industrial',     'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=700&q=80&fit=crop'],
+  // Chemie — Reagenzgläser (orange/warm)
+  ['chemie',         'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80&fit=crop'],
+  ['chemical',       'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80&fit=crop'],
+  // Telekommunikation — Antennen
+  ['telekom',        'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&q=80&fit=crop'],
+  ['telecom',        'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&q=80&fit=crop'],
+  // Transport / Logistik — Container
+  ['transport',      'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=700&q=80&fit=crop'],
+  ['logistik',       'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=700&q=80&fit=crop'],
+  // Lebensmittel
+  ['lebensmittel',   'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700&q=80&fit=crop'],
+  ['food',           'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700&q=80&fit=crop'],
+  // Rohstoffe / Bergbau — Bergwerk
+  ['rohstoff',       'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop'],
+  ['bergbau',        'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop'],
+]
+const SECTOR_DEFAULT = 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop'
 
 function normalizeStr(str: string): string {
   return str.toLowerCase()
@@ -111,16 +119,12 @@ function normalizeStr(str: string): string {
 
 function getSectorImage(a: Analysis): string {
   const s = normalizeStr(a.sector ?? '')
-  for (const [key, url] of Object.entries(SECTOR_IMAGES)) {
-    if (key === 'default') continue
-    if (s.includes(normalizeStr(key))) return url
-  }
   const t = normalizeStr(a.title ?? '')
-  for (const [key, url] of Object.entries(SECTOR_IMAGES)) {
-    if (key === 'default') continue
-    if (t.includes(normalizeStr(key))) return url
+  for (const [key, url] of SECTOR_IMAGES) {
+    const k = normalizeStr(key)
+    if (s.includes(k) || t.includes(k)) return url
   }
-  return SECTOR_IMAGES.default
+  return SECTOR_DEFAULT
 }
 
 // ─── Rating config ────────────────────────────────────────────────────────────
