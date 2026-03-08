@@ -362,37 +362,48 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         </div>
       </div>
 
-      {/* ── Preis-Leiste (nur Equity mit Preisdaten) ────────────── */}
       {cat === 'equity' && (displayPrice || a.price_target) && (
         <div className="ac-prices">
-          <div className="ac-price-cell">
-            <div className="ac-price-label">
-              <span className="ac-price-dot" style={{
-                background: isOpen ? '#22c55e' : '#94a3b8',
-                animation:  isOpen ? 'livePulse 2s ease infinite' : 'none',
-              }} />
-              KURS
-              {loading && <span className="ac-loading">↻</span>}
-            </div>
-            <div className="ac-price-val">
-              {error ? '–' : displayPrice != null ? `€${fmt(displayPrice)}` : '–'}
-            </div>
+          {/* Kurs → Ziel flow */}
+          <div className="ac-price-flow">
+            {displayPrice != null && (
+              <div className="ac-price-cell">
+                <div className="ac-price-label">
+                  <span className="ac-price-dot" style={{
+                    background: isOpen ? '#22c55e' : '#94a3b8',
+                    animation: isOpen ? 'livePulse 2s ease infinite' : 'none',
+                  }} />
+                  KURS{loading && <span className="ac-loading"> ↻</span>}
+                </div>
+                <div className="ac-price-val">
+                  {error ? '–' : `€${fmt(displayPrice)}`}
+                </div>
+              </div>
+            )}
+
+            {displayPrice != null && a.price_target && (
+              <span className="ac-price-arrow">→</span>
+            )}
+
+            {a.price_target && (
+              <div className="ac-price-cell">
+                <div className="ac-price-label">ZIEL</div>
+                <div className="ac-price-val gold">€{fmt(a.price_target)}</div>
+              </div>
+            )}
           </div>
 
-          {a.price_target && (
-            <div className="ac-price-cell">
-              <div className="ac-price-label">ZIEL</div>
-              <div className="ac-price-val gold">€{fmt(a.price_target)}</div>
-            </div>
-          )}
-
+          {/* Upside — prominent rechts */}
           {displayUpside != null && (
-            <div className="ac-price-cell" style={{ background: displayUpside >= 0 ? 'rgba(21,128,61,0.04)' : 'rgba(220,38,38,0.04)' }}>
-              <div className="ac-price-label">UPSIDE POTENZIAL</div>
-              <div className={`ac-price-val ${displayUpside >= 0 ? 'up' : 'dn'}`} style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>
-                {displayUpside >= 0 ? '+' : ''}{displayUpside.toFixed(1)}%
+            <>
+              <div className="ac-price-separator" />
+              <div className="ac-upside-block">
+                <div className={`ac-upside-val ${displayUpside >= 0 ? 'up' : 'dn'}`}>
+                  {displayUpside >= 0 ? '+' : ''}{displayUpside.toFixed(1)}%
+                </div>
+                <div className="ac-upside-lbl">UPSIDE</div>
               </div>
-            </div>
+            </>
           )}
         </div>
       )}
@@ -565,28 +576,50 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
         .ac-sector-lbl { font-size:7px; letter-spacing:2px; color:rgba(255,255,255,.4); text-transform:uppercase; font-family:'DM Mono',monospace; }
 
         .ac-prices {
-          display: grid; grid-template-columns: repeat(3,1fr);
-          background:#f8fafc;
-          border-top:1px solid #f1f5f9;
-          border-bottom:1px solid #f1f5f9;
+          display: flex;
+          align-items: stretch;
+          background: #f8fafc;
+          border-top: 1px solid #f1f5f9;
+          border-bottom: 1px solid #f1f5f9;
+          padding: 10px 16px;
+          gap: 0;
         }
-        .ac-price-cell { padding:13px 16px; border-right:1px solid #f1f5f9; }
-        .ac-price-cell:last-child { border-right:none; }
+        .ac-price-flow {
+          display: flex; align-items: center; gap: 8px; flex: 1;
+        }
+        .ac-price-cell { padding: 0; border-right: none; }
         .ac-price-label {
-          font-size:8px; letter-spacing:2px; color:#94a3b8;
-          text-transform:uppercase;
-          display:flex; align-items:center; gap:5px; margin-bottom:5px;
-          font-family:'DM Mono',monospace;
+          font-size: 8px; letter-spacing: 2px; color: #94a3b8;
+          text-transform: uppercase;
+          display: flex; align-items: center; gap: 4px; margin-bottom: 3px;
+          font-family: 'DM Mono', monospace;
         }
-        .ac-price-dot  { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
-        .ac-loading    { font-size:8px; color:#94a3b8; }
+        .ac-price-dot  { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+        .ac-loading    { font-size: 8px; color: #94a3b8; }
         .ac-price-val  {
-          font-family:'Cormorant Garamond',serif;
-          font-size:22px; font-weight:600; color:#0f172a; line-height:1;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 17px; font-weight: 600; color: #0f172a; line-height: 1;
         }
-        .ac-price-val.gold { color:#c9a227; }
-        .ac-price-val.up   { color:#15803d; }
-        .ac-price-val.dn   { color:#b91c1c; }
+        .ac-price-val.gold { color: #c9a227; }
+        .ac-price-arrow {
+          font-size: 14px; color: #cbd5e1; flex-shrink: 0; margin: 0 4px;
+          align-self: flex-end; padding-bottom: 1px;
+        }
+        .ac-price-separator { width: 1px; background: #e2e8f0; margin: 0 12px; align-self: stretch; flex-shrink: 0; }
+        .ac-upside-block {
+          display: flex; flex-direction: column; justify-content: center;
+          padding-left: 12px;
+        }
+        .ac-upside-val {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 26px; font-weight: 700; line-height: 1; letter-spacing: -0.02em;
+        }
+        .ac-upside-val.up { color: #15803d; }
+        .ac-upside-val.dn { color: #b91c1c; }
+        .ac-upside-lbl {
+          font-size: 7px; letter-spacing: 2px; color: #94a3b8;
+          text-transform: uppercase; font-family: 'DM Mono', monospace; margin-top: 2px;
+        }
 
         .ac-body { padding:16px 20px 18px; display:flex; flex-direction:column; flex:1; }
 
