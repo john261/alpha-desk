@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 
+// ─── Types ────────────────────────────────────────────────────────────────────
 type Analysis = {
   id: string
   ticker: string
@@ -16,6 +17,7 @@ type Analysis = {
   pdfUrl?: string | null
 }
 
+// ─── Realtime price hook (unverändert) ───────────────────────────────────────
 function useRealtimePrice(ticker: string, priceTarget: number | null | undefined) {
   const [price, setPrice]             = useState<number | null>(null)
   const [marketState, setMarketState] = useState<string | null>(null)
@@ -53,22 +55,62 @@ function useRealtimePrice(ticker: string, priceTarget: number | null | undefined
   return { price, upside, marketState, lastUpdated, loading, error }
 }
 
-const RATING = {
-  BUY:   { bg:'#f0fdf4', text:'#15803d', border:'#86efac', icon:'▲' },
-  HOLD:  { bg:'#fffbeb', text:'#b45309', border:'#fcd34d', icon:'●' },
-  SELL:  { bg:'#fef2f2', text:'#b91c1c', border:'#fca5a5', icon:'▼' },
-  WATCH: { bg:'#f8fafc', text:'#475569', border:'#cbd5e1', icon:'◎' },
+// ─── Sector → Unsplash image (vollautomatisch aus sector/title) ───────────────
+const SECTOR_IMAGES: Record<string, string> = {
+  tech:        'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop',
+  technology:  'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop',
+  software:    'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=700&q=80&fit=crop',
+  finance:     'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop',
+  banking:     'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?w=700&q=80&fit=crop',
+  energy:      'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=700&q=80&fit=crop',
+  health:      'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80&fit=crop',
+  pharma:      'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=700&q=80&fit=crop',
+  auto:        'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop',
+  automotive:  'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop',
+  retail:      'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=700&q=80&fit=crop',
+  real:        'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop',
+  media:       'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=700&q=80&fit=crop',
+  industrial:  'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=700&q=80&fit=crop',
+  chemical:    'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80&fit=crop',
+  telecom:     'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&q=80&fit=crop',
+  transport:   'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=700&q=80&fit=crop',
+  food:        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700&q=80&fit=crop',
+  consumer:    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=700&q=80&fit=crop',
+  default:     'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop',
+}
+
+function getSectorImage(a: Analysis): string {
+  const s = (a.sector ?? '').toLowerCase()
+  for (const [key, url] of Object.entries(SECTOR_IMAGES)) {
+    if (s.includes(key)) return url
+  }
+  const t = (a.title ?? '').toLowerCase()
+  for (const [key, url] of Object.entries(SECTOR_IMAGES)) {
+    if (t.includes(key)) return url
+  }
+  return SECTOR_IMAGES.default
+}
+
+// ─── Rating config ────────────────────────────────────────────────────────────
+const RATING_CFG = {
+  BUY:   { bg: '#15803d', text: '#dcfce7', icon: '▲' },
+  HOLD:  { bg: '#b45309', text: '#fef3c7', icon: '●' },
+  SELL:  { bg: '#dc2626', text: '#fee2e2', icon: '▼' },
+  WATCH: { bg: '#334155', text: '#e2e8f0', icon: '◎' },
 } as const
 
 function fmt(n: number) {
   return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
+// ─── Single Card ──────────────────────────────────────────────────────────────
 function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
+  const [imgError, setImgError] = useState(false)
+
   const { price, upside, marketState, lastUpdated, loading, error } =
     useRealtimePrice(a.ticker, a.price_target)
 
-  const rc = RATING[a.rating] ?? RATING.WATCH
+  const rc = RATING_CFG[a.rating] ?? RATING_CFG.WATCH
   const isOpen = marketState === 'REGULAR'
 
   const displayPrice  = price ?? a.current_price
@@ -78,55 +120,92 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         ? ((a.price_target - a.current_price) / a.current_price) * 100
         : null)
 
+  // Checkmarks — automatisch aus vorhandenen Feldern gebaut
+  const checks: string[] = []
+  if (a.rating && a.price_target)
+    checks.push(`${a.rating} Rating · Kursziel €${fmt(a.price_target)}`)
+  else if (a.rating)
+    checks.push(`${a.rating} Rating`)
+  if (displayUpside != null)
+    checks.push(`Upside-Potenzial: ${displayUpside >= 0 ? '+' : ''}${displayUpside.toFixed(1)}%`)
+  if (a.analyst)
+    checks.push(`Analyst: ${a.analyst}`)
+  if (a.description)
+    checks.push(a.description.slice(0, 72) + (a.description.length > 72 ? '…' : ''))
+  if (checks.length === 0)
+    checks.push('Vollständige Analyse verfügbar')
+
+  const date = new Date(a.created_at).toLocaleDateString('de-DE', {
+    day: '2-digit', month: 'short', year: 'numeric',
+  })
+
   return (
-    <article className="card" style={{ animationDelay:`${idx*0.05}s` }}>
-      <div className="card-body">
-        <div className="card-header">
-          <div>
-            <div className="card-ticker">{a.ticker}</div>
-            {a.sector && <div className="card-sector">{a.sector}</div>}
-          </div>
-          <div className="card-badge"
-            style={{ background:rc.bg, color:rc.text, border:`1px solid ${rc.border}` }}>
-            <span>{rc.icon}</span>{a.rating}
-          </div>
+    <article className="ac-card" style={{ animationDelay: `${idx * 0.07}s` }}>
+
+      {/* ── Bild-Header ─────────────────────────────────────────── */}
+      <div className="ac-img-wrap">
+        {!imgError ? (
+          <img
+            src={getSectorImage(a)}
+            alt={a.title}
+            className="ac-img"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="ac-img-fallback" />
+        )}
+        <div className="ac-overlay" />
+
+        {/* Rating-Badge */}
+        <div className="ac-badge" style={{ background: rc.bg, color: rc.text }}>
+          <span>{rc.icon}</span>
+          <span>{a.rating}</span>
         </div>
-        <div className="card-title">{a.title}</div>
-        {a.description && <div className="card-desc">{a.description}</div>}
+
+        {/* Live-Indikator wenn Markt offen */}
+        {isOpen && (
+          <div className="ac-live">
+            <span className="ac-live-dot" />
+            <span>LIVE</span>
+          </div>
+        )}
+
+        {/* Ticker + Titel auf dem Bild */}
+        <div className="ac-co-wrap">
+          <div className="ac-ticker">{a.ticker}</div>
+          <h2 className="ac-co">{a.title}</h2>
+          {a.sector && <div className="ac-sector-lbl">{a.sector}</div>}
+        </div>
       </div>
 
+      {/* ── Preis-Leiste ────────────────────────────────────────── */}
       {(displayPrice || a.price_target) && (
-        <div className="price-block">
-          <div className="price-cell">
-            <div className="price-label" style={{ display:'flex', alignItems:'center', gap:5, marginBottom:4 }}>
-              <span style={{
-                display:'inline-block', width:6, height:6, borderRadius:'50%', flexShrink:0,
+        <div className="ac-prices">
+          <div className="ac-price-cell">
+            <div className="ac-price-label">
+              <span className="ac-price-dot" style={{
                 background: isOpen ? '#22c55e' : '#94a3b8',
-                animation: isOpen ? 'livePulse 2s ease infinite' : 'none',
+                animation:  isOpen ? 'livePulse 2s ease infinite' : 'none',
               }} />
-              AKTUELLER KURS
-              {loading && <span style={{ fontSize:8, color:'#94a3b8', marginLeft:4 }}>↻</span>}
+              KURS
+              {loading && <span className="ac-loading">↻</span>}
             </div>
-            {error ? (
-              <div className="price-value" style={{ fontSize:14, color:'#94a3b8' }}>–</div>
-            ) : (
-              <div className="price-value">
-                {displayPrice != null ? `€${fmt(displayPrice)}` : '–'}
-              </div>
-            )}
+            <div className="ac-price-val">
+              {error ? '–' : displayPrice != null ? `€${fmt(displayPrice)}` : '–'}
+            </div>
           </div>
 
           {a.price_target && (
-            <div className="price-cell">
-              <div className="price-label" style={{ marginBottom:4 }}>KURSZIEL</div>
-              <div className="price-value gold">€{fmt(a.price_target)}</div>
+            <div className="ac-price-cell">
+              <div className="ac-price-label">ZIEL</div>
+              <div className="ac-price-val gold">€{fmt(a.price_target)}</div>
             </div>
           )}
 
           {displayUpside != null && (
-            <div className="price-cell">
-              <div className="price-label" style={{ marginBottom:4 }}>UPSIDE</div>
-              <div className={`price-value ${displayUpside >= 0 ? 'up' : 'dn'}`}>
+            <div className="ac-price-cell">
+              <div className="ac-price-label">UPSIDE</div>
+              <div className={`ac-price-val ${displayUpside >= 0 ? 'up' : 'dn'}`}>
                 {displayUpside >= 0 ? '+' : ''}{displayUpside.toFixed(1)}%
               </div>
             </div>
@@ -134,68 +213,212 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         </div>
       )}
 
-      <div className="card-footer">
-        {a.pdfUrl ? (
-          <a href={a.pdfUrl} target="_blank" rel="noopener noreferrer" className="open-btn">
-            ↓ Report öffnen
-          </a>
-        ) : <div />}
-        <div className="card-meta">
-          {a.analyst && <span className="meta-tag">{a.analyst}</span>}
-          <span className="meta-date">
-            {new Date(a.created_at).toLocaleDateString('de-DE', { day:'2-digit', month:'short', year:'numeric' })}
-          </span>
-          {lastUpdated && (
-            <span className="meta-date" style={{ color:'#c9a227', opacity:0.7 }}>
-              ↻ {lastUpdated.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' })}
-            </span>
+      {/* ── Body: Checkmarks ────────────────────────────────────── */}
+      <div className="ac-body">
+        <ul className="ac-checks">
+          {checks.slice(0, 3).map((c, i) => (
+            <li key={i} className="ac-check-item">
+              <span className="ac-check-icon">✓</span>
+              <span>{c}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="ac-divider" />
+
+        {/* Footer */}
+        <div className="ac-footer">
+          {a.pdfUrl ? (
+            <a href={a.pdfUrl} target="_blank" rel="noopener noreferrer" className="ac-btn">
+              <span>↓</span> Report öffnen
+            </a>
+          ) : (
+            <button className="ac-btn ac-btn-ghost" disabled>
+              <span>○</span> Bald verfügbar
+            </button>
           )}
+
+          <div className="ac-meta">
+            {a.analyst && <span className="ac-meta-tag">{a.analyst}</span>}
+            <span className="ac-meta-date">{date}</span>
+            {lastUpdated && (
+              <span className="ac-meta-date" style={{ color: '#c9a227', opacity: .7 }}>
+                ↻ {lastUpdated.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+          </div>
         </div>
       </div>
+
     </article>
   )
 }
 
+// ─── Grid ─────────────────────────────────────────────────────────────────────
 export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }) {
+  if (!analyses || analyses.length === 0) {
+    return (
+      <div style={{
+        textAlign: 'center', padding: '80px 0',
+        color: '#475569', fontFamily: "'DM Mono',monospace",
+        fontSize: 11, letterSpacing: 3, textTransform: 'uppercase',
+      }}>
+        Keine Analysen verfügbar
+      </div>
+    )
+  }
+
   return (
     <>
       <style>{`
-        @keyframes livePulse {
-          0%,100% { opacity:1; transform:scale(1); }
-          50%      { opacity:.35; transform:scale(1.6); }
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Mono:wght@300;400;500&display=swap');
+
+        @keyframes fadeUp    { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(1.7)} }
+
+        /* Grid */
+        .ac-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+          gap: 22px;
         }
-        .cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:20px; }
-        .card { background:#fff; border:1px solid #e2e8f0; overflow:hidden; animation:fadeUp .4s ease both; transition:box-shadow .25s,transform .25s,border-color .25s; }
-        .card:hover { box-shadow:0 20px 60px rgba(0,0,0,0.12); transform:translateY(-4px); border-color:#c9a227; }
-        .card-body   { padding:22px 22px 16px; }
-        .card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
-        .card-ticker { font-size:13px; letter-spacing:4px; font-weight:500; color:#0f172a; text-transform:uppercase; }
-        .card-sector { font-size:8px; letter-spacing:2px; color:#94a3b8; text-transform:uppercase; margin-top:3px; }
-        .card-badge  { padding:5px 14px; font-size:9px; letter-spacing:2px; font-weight:600; text-transform:uppercase; display:flex; align-items:center; gap:5px; flex-shrink:0; }
-        .card-title  { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:400; color:#0f172a; line-height:1.3; margin-bottom:10px; }
-        .card-desc   { font-size:11px; color:#94a3b8; line-height:1.8; }
-        .price-block { display:grid; grid-template-columns:repeat(3,1fr); background:#f8fafc; border-top:1px solid #f1f5f9; }
-        .price-cell  { padding:16px 18px; border-right:1px solid #f1f5f9; }
-        .price-cell:last-child { border-right:none; }
-        .price-value      { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:600; color:#0f172a; line-height:1; }
-        .price-value.gold { color:#c9a227; }
-        .price-value.up   { color:#15803d; }
-        .price-value.dn   { color:#b91c1c; }
-        .price-label { font-size:8px; letter-spacing:2px; color:#94a3b8; text-transform:uppercase; }
-        .card-footer { padding:14px 22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-top:1px solid #f1f5f9; background:#fafafa; }
-        .open-btn { display:inline-flex; align-items:center; gap:8px; padding:11px 22px; background:#0a1628; color:#fff; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; text-decoration:none; font-weight:500; transition:all .2s; }
-        .open-btn:hover { background:#c9a227; color:#0a1628; }
-        .card-meta  { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        .meta-tag   { font-size:8px; letter-spacing:1px; color:#94a3b8; padding:4px 8px; background:#f1f5f9; border:1px solid #e2e8f0; text-transform:uppercase; }
-        .meta-date  { font-size:9px; color:#cbd5e1; letter-spacing:1px; }
+
+        /* Card */
+        .ac-card {
+          background: #fff;
+          border: 1px solid #e2e8f0;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          opacity: 0;
+          animation: fadeUp .45s ease both;
+          transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        }
+        .ac-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 24px 64px rgba(0,0,0,0.13), 0 4px 16px rgba(201,162,39,0.1);
+          border-color: rgba(201,162,39,0.4);
+        }
+
+        /* Image header */
+        .ac-img-wrap {
+          position: relative; height: 186px;
+          overflow: hidden; background: #0d1f38; flex-shrink: 0;
+        }
+        .ac-img { width:100%; height:100%; object-fit:cover; transition:transform .5s ease; }
+        .ac-card:hover .ac-img { transform: scale(1.05); }
+        .ac-img-fallback {
+          width:100%; height:100%;
+          background: linear-gradient(135deg, #0d1f38 0%, #1e3a5f 55%, #0a2440 100%);
+        }
+        .ac-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(to bottom,
+            rgba(5,14,30,.05) 0%, rgba(5,14,30,.22) 45%,
+            rgba(5,14,30,.82) 78%, rgba(5,14,30,.96) 100%);
+        }
+
+        /* Badges */
+        .ac-badge {
+          position: absolute; top: 12px; right: 12px;
+          display: flex; align-items: center; gap: 5px;
+          padding: 4px 11px;
+          font-size: 9px; letter-spacing: 2px;
+          text-transform: uppercase; font-weight: 600;
+        }
+        .ac-live {
+          position: absolute; top: 12px; left: 12px;
+          display: flex; align-items: center; gap: 6px;
+          font-size: 7px; letter-spacing: 3px;
+          color: rgba(255,255,255,.55); text-transform: uppercase;
+        }
+        .ac-live-dot {
+          width:5px; height:5px; border-radius:50%;
+          background:#22c55e; flex-shrink:0;
+          animation: livePulse 2s ease infinite;
+        }
+
+        /* Company text on image */
+        .ac-co-wrap { position:absolute; bottom:0; left:0; right:0; padding:14px 18px 13px; }
+        .ac-ticker  { font-size:8px; letter-spacing:4px; color:#c9a227; text-transform:uppercase; margin-bottom:5px; opacity:.9; }
+        .ac-co {
+          font-family:'Cormorant Garamond',serif;
+          font-size:20px; font-weight:600; color:#fff;
+          line-height:1.2; margin:0 0 4px;
+          text-shadow:0 2px 10px rgba(0,0,0,.45);
+        }
+        .ac-sector-lbl { font-size:7px; letter-spacing:2px; color:rgba(255,255,255,.4); text-transform:uppercase; }
+
+        /* Price bar */
+        .ac-prices {
+          display: grid; grid-template-columns: repeat(3,1fr);
+          background:#f8fafc;
+          border-top:1px solid #f1f5f9;
+          border-bottom:1px solid #f1f5f9;
+        }
+        .ac-price-cell { padding:13px 16px; border-right:1px solid #f1f5f9; }
+        .ac-price-cell:last-child { border-right:none; }
+        .ac-price-label {
+          font-size:8px; letter-spacing:2px; color:#94a3b8;
+          text-transform:uppercase;
+          display:flex; align-items:center; gap:5px; margin-bottom:5px;
+        }
+        .ac-price-dot  { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+        .ac-loading    { font-size:8px; color:#94a3b8; }
+        .ac-price-val  {
+          font-family:'Cormorant Garamond',serif;
+          font-size:22px; font-weight:600; color:#0f172a; line-height:1;
+        }
+        .ac-price-val.gold { color:#c9a227; }
+        .ac-price-val.up   { color:#15803d; }
+        .ac-price-val.dn   { color:#b91c1c; }
+
+        /* Body */
+        .ac-body { padding:16px 20px 18px; display:flex; flex-direction:column; flex:1; }
+
+        /* Checks */
+        .ac-checks { list-style:none; margin:0 0 14px; padding:0; display:flex; flex-direction:column; gap:9px; flex:1; }
+        .ac-check-item {
+          display:flex; align-items:flex-start; gap:10px;
+          font-size:10px; color:#334155; line-height:1.5;
+          font-family:'DM Mono',monospace;
+        }
+        .ac-check-icon { color:#c9a227; font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px; }
+
+        /* Divider */
+        .ac-divider { height:1px; background:#f1f5f9; margin-bottom:14px; }
+
+        /* Footer */
+        .ac-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        .ac-btn {
+          display:inline-flex; align-items:center; gap:8px;
+          padding:10px 20px; background:#0a1628; color:#c9a227;
+          font-family:'DM Mono',monospace; font-size:9px;
+          letter-spacing:3px; text-transform:uppercase;
+          text-decoration:none; border:none; cursor:pointer; font-weight:500;
+          transition:background .2s, color .2s, transform .15s;
+        }
+        .ac-btn:hover { background:#c9a227; color:#0a1628; transform:translateY(-1px); }
+        .ac-btn-ghost { background:#f8fafc; color:#94a3b8; border:1px solid #e2e8f0; cursor:default; }
+        .ac-btn-ghost:hover { background:#f8fafc; color:#94a3b8; transform:none; }
+
+        .ac-meta      { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        .ac-meta-tag  {
+          font-size:8px; letter-spacing:1px; color:#94a3b8;
+          padding:3px 7px; background:#f1f5f9; border:1px solid #e2e8f0;
+          text-transform:uppercase; font-family:'DM Mono',monospace;
+        }
+        .ac-meta-date { font-size:8px; color:#cbd5e1; letter-spacing:1px; font-family:'DM Mono',monospace; }
+
         @media (max-width:640px) {
-          .cards-grid { grid-template-columns:1fr; gap:12px; }
-          .price-block { grid-template-columns:1fr 1fr; }
-          .price-cell:nth-child(3) { grid-column:1/-1; border-top:1px solid #f1f5f9; border-right:none; }
-          .card-footer { flex-direction:column; align-items:flex-start; }
+          .ac-grid { grid-template-columns:1fr; gap:14px; }
+          .ac-prices { grid-template-columns:1fr 1fr; }
+          .ac-price-cell:nth-child(3) { grid-column:1/-1; border-top:1px solid #f1f5f9; border-right:none; }
+          .ac-footer { flex-direction:column; align-items:flex-start; }
         }
       `}</style>
-      <div className="cards-grid">
+
+      <div className="ac-grid">
         {analyses.map((a, i) => (
           <AnalysisCard key={a.id} a={a} idx={i} />
         ))}
