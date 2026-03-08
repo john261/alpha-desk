@@ -602,8 +602,8 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
         }
         .ac-price-val.gold { color: #c9a227; }
         .ac-price-arrow {
-          font-size: 14px; color: #cbd5e1; flex-shrink: 0; margin: 0 4px;
-          align-self: flex-end; padding-bottom: 1px;
+          font-size: 17px; color: #c9a227; flex-shrink: 0; margin: 0 6px;
+          align-self: flex-end; padding-bottom: 1px; font-weight: 600;
         }
         .ac-price-separator { width: 1px; background: #e2e8f0; margin: 0 12px; align-self: stretch; flex-shrink: 0; }
         .ac-upside-block {
@@ -612,7 +612,7 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
         }
         .ac-upside-val {
           font-family: 'Cormorant Garamond', serif;
-          font-size: 26px; font-weight: 700; line-height: 1; letter-spacing: -0.02em;
+          font-size: 30px; font-weight: 700; line-height: 1; letter-spacing: -0.02em;
         }
         .ac-upside-val.up { color: #15803d; }
         .ac-upside-val.dn { color: #b91c1c; }
@@ -621,9 +621,9 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
           text-transform: uppercase; font-family: 'DM Mono', monospace; margin-top: 2px;
         }
 
-        .ac-body { padding:16px 20px 18px; display:flex; flex-direction:column; flex:1; }
+        .ac-body { padding:12px 16px 14px; display:flex; flex-direction:column; flex:1; }
 
-        .ac-checks { list-style:none; margin:0 0 14px; padding:0; display:flex; flex-direction:column; gap:9px; flex:1; }
+        .ac-checks { list-style:none; margin:0 0 10px; padding:0; display:flex; flex-direction:column; gap:7px; flex:1; }
         .ac-check-item {
           display:flex; align-items:flex-start; gap:10px;
           font-size:10px; color:#334155; line-height:1.5;
@@ -631,21 +631,20 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
         }
         .ac-check-icon { font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px; }
 
-        .ac-divider { height:1px; background:#f1f5f9; margin-bottom:14px; }
+        .ac-divider { height:1px; background:#f1f5f9; margin-bottom:10px; }
 
         .ac-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
         .ac-btn {
           display:inline-flex; align-items:center; gap:8px;
-          padding:12px 22px; background:#0a1628; color:#c9a227;
+          padding:11px 20px; background:#0a1628; color:#c9a227;
           font-family:'DM Mono',monospace; font-size:9px;
           letter-spacing:3px; text-transform:uppercase;
-          text-decoration:none; border:none; cursor:pointer; font-weight:600;
-          transition:background .2s, color .2s, transform .15s;
-          border: 1px solid rgba(201,162,39,0.25);
+          text-decoration:none; border:1px solid rgba(201,162,39,0.35); cursor:pointer; font-weight:700;
+          transition:background .2s, color .2s, transform .15s, box-shadow .2s;
         }
-        .ac-btn:hover { background:#c9a227; color:#0a1628; transform:translateY(-1px); border-color: #c9a227; }
-        .ac-btn-ghost { background:#f8fafc; color:#cbd5e1; border:1px solid #e2e8f0; cursor:default; }
-        .ac-btn-ghost:hover { background:#f8fafc; color:#cbd5e1; transform:none; border-color:#e2e8f0; }
+        .ac-btn:hover { background:#c9a227; color:#0a1628; transform:translateY(-2px); box-shadow: 0 6px 20px rgba(201,162,39,0.25); border-color:#c9a227; }
+        .ac-btn-ghost { background:#f8fafc; color:#cbd5e1; border:1px solid #e2e8f0; cursor:default; font-weight:500; }
+        .ac-btn-ghost:hover { background:#f8fafc; color:#cbd5e1; transform:none; box-shadow:none; border-color:#e2e8f0; }
 
         .ac-meta      { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
         .ac-meta-tag  {
