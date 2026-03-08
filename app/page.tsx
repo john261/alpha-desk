@@ -1,9 +1,11 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Analysis } from '@/lib/supabase/types'
-import AnalysisCardsGrid from '@/components/AnalysisCardsGrid'
+
+const AnalysisCardsGrid = dynamic(() => import('@/components/AnalysisCardsGrid'), { ssr: false })
 
 export default function HomePage() {
   const supabase = createClient()
@@ -167,7 +169,7 @@ export default function HomePage() {
         </div>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', textAlign: 'center', padding: '12px 48px' }}>
           <span style={{ fontSize: 8, letterSpacing: 1, color: 'rgba(255,255,255,0.15)', textTransform: 'uppercase' }}>
-            © {new Date().getFullYear()} AlphaDesk
+            © AlphaDesk
           </span>
         </div>
       </footer>
