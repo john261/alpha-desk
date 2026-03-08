@@ -24,11 +24,9 @@ export default function HomePage() {
         (data as Analysis[]).map(async (a) => {
           if (!a.pdf_path) return { ...a, pdfUrl: null }
           try {
-            const { data: signed, error } = await supabase.storage
-              .from('analyses-pdfs')
-              .createSignedUrl(a.pdf_path, 60 * 60 * 24) // 24h statt 1h
-            if (error || !signed?.signedUrl) return { ...a, pdfUrl: null }
-            return { ...a, pdfUrl: signed.signedUrl }
+            const res = await fetch(`/api/signed-url?path=${encodeURIComponent(a.pdf_path)}`)
+            const json = await res.json()
+            return { ...a, pdfUrl: json.url ?? null }
           } catch {
             return { ...a, pdfUrl: null }
           }
