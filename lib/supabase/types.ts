@@ -17,15 +17,17 @@ export interface Analysis {
   pdf_name: string | null
   published: boolean
   author_id: string | null
+  category: string | null
+  pdfUrl?: string | null
 }
 
 export type Database = {
   public: {
     Tables: {
       analyses: {
-        Row: Analysis
-        Insert: Omit<Analysis, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<Analysis, 'id' | 'created_at'>>
+        Row: Omit<Analysis, 'pdfUrl'>
+        Insert: Omit<Analysis, 'id' | 'created_at' | 'updated_at' | 'pdfUrl'>
+        Update: Partial<Omit<Analysis, 'id' | 'created_at' | 'pdfUrl'>>
       }
     }
   }

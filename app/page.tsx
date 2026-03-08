@@ -12,7 +12,7 @@ export default function HomePage() {
 
   useEffect(() => {
     async function load() {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('analyses')
         .select('*')
         .eq('published', true)
@@ -146,7 +146,7 @@ export default function HomePage() {
             LOADING...
           </div>
         ) : (
-          <AnalysisCardsGrid analyses={analyses as any} />
+          <AnalysisCardsGrid analyses={analyses} />
         )}
       </main>
 
