@@ -1,575 +1,312 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Analysis, Rating } from '@/lib/supabase/types'
 
-const RATINGS: Rating[] = ['BUY', 'HOLD', 'SELL', 'WATCH']
-const BADGE: Record<Rating, { color: string; bg: string }> = {
-  BUY:   { color: '#4ec994', bg: 'rgba(78,201,148,0.08)' },
-  SELL:  { color: '#e05555', bg: 'rgba(224,85,85,0.08)' },
-  HOLD:  { color: '#a8a8f0', bg: 'rgba(168,168,240,0.08)' },
-  WATCH: { color: '#c9a84c', bg: 'rgba(201,168,76,0.12)' },
+const BADGE: Record<string, { color: string; bg: string }> = {
+  BUY:   { color: '#fff', bg: '#27ae60' },
+  SELL:  { color: '#fff', bg: '#e05555' },
+  HOLD:  { color: '#fff', bg: '#c9a227' },
+  WATCH: { color: '#fff', bg: '#c9a84c' },
 }
 
-const CATEGORIES = [
-  { value: 'equity', label: 'Equity Research',    icon: '◈', desc: 'Einzelaktien · Fundamentalanalyse' },
-  { value: 'geo',    label: 'Geopolitik & Märkte', icon: '◉', desc: 'Weltpolitik · Makro · Marktauswirkungen' },
-]
-const CATEGORY_COLORS: Record<string, string> = {
-  equity: '#c9a227',
-  geo:    '#38bdf8',
+const SECTOR_IMAGES: Record<string, string> = {
+  'Technologie':               'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80',
+  'Software & IT':             'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&q=80',
+  'Halbleiter':                'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80',
+  'Automobil & OEM':           'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80',
+  'Autovermietung & Mobilität':'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80',
+  'Versicherung':              'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80',
+  'Banken & Finanzen':         'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80',
+  'Immobilien':                'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=80',
+  'Energie & Utilities':       'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=600&q=80',
+  'Erneuerbare Energien':      'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&q=80',
+  'Pharma & Biotech':          'https://images.unsplash.com/photo-1576671081837-49000212a370?w=600&q=80',
+  'Medizintechnik':            'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=600&q=80',
+  'Konsumgüter & Handel':      'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&q=80',
+  'Lebensmittel & Getränke':   'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&q=80',
+  'Industrie & Maschinenbau':  'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&q=80',
+  'Chemie & Werkstoffe':       'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600&q=80',
+  'Telekommunikation':         'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+  'Medien & Entertainment':    'https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?w=600&q=80',
+  'Transport & Logistik':      'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80',
+  'Luft- & Raumfahrt':         'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=600&q=80',
+  'Rüstung & Defense':         'https://images.unsplash.com/photo-1569163139599-0f4517e36f51?w=600&q=80',
+  'Rohstoffe & Bergbau':       'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&q=80',
+  'Luxury & Fashion':          'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&q=80',
+  'Künstliche Intelligenz':    'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80',
+  'Krypto & Blockchain':       'https://images.unsplash.com/photo-1518544801976-3e159e50e5bb?w=600&q=80',
+  'default':                   'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80',
 }
 
-const SECTORS = [
-  { value: 'Technologie',                label: 'Technologie' },
-  { value: 'Software & IT',              label: 'Software & IT' },
-  { value: 'Halbleiter',                 label: 'Halbleiter' },
-  { value: 'Automobil & OEM',            label: 'Automobil & OEM' },
-  { value: 'Autovermietung & Mobilität', label: 'Autovermietung & Mobilität' },
-  { value: 'Versicherung',               label: 'Versicherung' },
-  { value: 'Banken & Finanzen',          label: 'Banken & Finanzen' },
-  { value: 'Immobilien',                 label: 'Immobilien' },
-  { value: 'Energie & Utilities',        label: 'Energie & Utilities' },
-  { value: 'Erneuerbare Energien',       label: 'Erneuerbare Energien' },
-  { value: 'Pharma & Biotech',           label: 'Pharma & Biotech' },
-  { value: 'Medizintechnik',             label: 'Medizintechnik' },
-  { value: 'Konsumgüter & Handel',       label: 'Konsumgüter & Handel' },
-  { value: 'Lebensmittel & Getränke',    label: 'Lebensmittel & Getränke' },
-  { value: 'Industrie & Maschinenbau',   label: 'Industrie & Maschinenbau' },
-  { value: 'Chemie & Werkstoffe',        label: 'Chemie & Werkstoffe' },
-  { value: 'Telekommunikation',          label: 'Telekommunikation' },
-  { value: 'Medien & Entertainment',     label: 'Medien & Entertainment' },
-  { value: 'Transport & Logistik',       label: 'Transport & Logistik' },
-  { value: 'Luft- & Raumfahrt',          label: 'Luft- & Raumfahrt' },
-  { value: 'Rüstung & Defense',          label: 'Rüstung & Defense' },
-  { value: 'Rohstoffe & Bergbau',        label: 'Rohstoffe & Bergbau' },
-  { value: 'E-Commerce & Plattformen',   label: 'E-Commerce & Plattformen' },
-  { value: 'Luxury & Fashion',           label: 'Luxury & Fashion' },
-  { value: 'Gaming & Esports',           label: 'Gaming & Esports' },
-  { value: 'Künstliche Intelligenz',     label: 'Künstliche Intelligenz' },
-  { value: 'Krypto & Blockchain',        label: 'Krypto & Blockchain' },
-  { value: 'Agrar & Forst',             label: 'Agrar & Forst' },
-  { value: 'Sonstiges',                  label: 'Sonstiges' },
-]
-
-const GEO_TOPICS = [
-  'USA & Fed-Politik', 'Europa & EZB', 'China & Asien', 'Naher Osten',
-  'Russland & Ukraine', 'NATO & Verteidigung', 'Handelskrieg & Zölle',
-  'Rohstoff-Geopolitik', 'Währungskrisen', 'Sanktionen & Embargos',
-  'Globale Lieferketten', 'Energiesicherheit', 'Sonstiges',
-]
-
-type FormData = {
-  ticker: string; title: string; description: string
-  rating: Rating; sector: string; analyst: string
-  current_price: string; price_target: string; category: string
+function getSectorImage(sector: string | null): string {
+  if (!sector) return SECTOR_IMAGES['default']
+  return SECTOR_IMAGES[sector] ?? SECTOR_IMAGES['default']
 }
 
-const EMPTY_FORM: FormData = {
-  ticker: '', title: '', description: '', rating: 'BUY',
-  sector: SECTORS[0].value, analyst: '', current_price: '', price_target: '',
-  category: 'equity',
-}
-
-// ── Manage List with Filter Tabs ──────────────────────────────────────────────
-function ManageList({ analyses, onEdit, onToggle, onDelete }: {
-  analyses: Analysis[]
-  onEdit: (a: Analysis) => void
-  onToggle: (a: Analysis) => void
-  onDelete: (a: Analysis) => void
-}) {
-  const [filter, setFilter] = useState<'all' | 'equity' | 'geo'>('all')
-
-  const counts = {
-    all:    analyses.length,
-    equity: analyses.filter(a => ((a as any).category ?? 'equity') === 'equity').length,
-    geo:    analyses.filter(a => ((a as any).category ?? 'equity') === 'geo').length,
-  }
-
-  const filtered = filter === 'all'
-    ? analyses
-    : analyses.filter(a => ((a as any).category ?? 'equity') === filter)
-
-  const FILTER_TABS = [
-    { key: 'all'    as const, label: 'ALLE',            color: 'var(--text-dim)' },
-    { key: 'equity' as const, label: 'EQUITY RESEARCH', color: '#c9a227' },
-    { key: 'geo'    as const, label: 'GEOPOLITIK',      color: '#38bdf8' },
-  ]
-
-  return (
-    <div>
-      <div style={{ display: 'flex', marginBottom: 24, borderBottom: '1px solid var(--border)' }}>
-        {FILTER_TABS.map(t => (
-          <button key={t.key} onClick={() => setFilter(t.key)} style={{
-            fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: 2,
-            background: 'transparent', border: 'none',
-            borderBottom: filter === t.key ? `2px solid ${t.color}` : '2px solid transparent',
-            color: filter === t.key ? t.color : 'var(--text-dim)',
-            padding: '12px 22px', cursor: 'pointer', textTransform: 'uppercase',
-            marginBottom: -1, transition: 'all 0.2s',
-          }}>
-            {t.label}
-            <span style={{ marginLeft: 7, fontSize: 8, opacity: 0.6 }}>({counts[t.key]})</span>
-          </button>
-        ))}
-      </div>
-
-      {filtered.length === 0 ? (
-        <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--text-dim)', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: 3, textTransform: 'uppercase' }}>
-          Keine Reports in dieser Kategorie
-        </div>
-      ) : (
-        <div style={{ border: '1px solid var(--border)' }}>
-          {filtered.map((a, i) => {
-            const b   = BADGE[a.rating] || BADGE.WATCH
-            const cat = (a as any).category ?? 'equity'
-            const cc  = CATEGORY_COLORS[cat] ?? '#c9a227'
-            return (
-              <div key={a.id} className="row-hover" style={{
-                display: 'flex', alignItems: 'center', gap: 20, padding: '20px 28px',
-                borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
-                transition: 'background 0.2s',
-              }}>
-                <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 20, color: 'var(--gold)', letterSpacing: 2, minWidth: 80 }}>
-                  {a.ticker}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, color: 'var(--text)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {a.title}
-                  </div>
-                  <div style={{ fontSize: 10, color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                    {new Date(a.created_at).toLocaleDateString('de-DE', { year: 'numeric', month: 'short', day: 'numeric' })}
-                    {cat === 'equity' && <><span>·</span><span style={{ color: b.color }}>{a.rating}</span></>}
-                    <span>·</span>
-                    <span style={{ color: cc, fontSize: 9, letterSpacing: 1, padding: '1px 6px', border: `1px solid ${cc}44` }}>
-                      {CATEGORIES.find(c => c.value === cat)?.label ?? cat}
-                    </span>
-                    {a.sector && <><span>·</span><span>{a.sector}</span></>}
-                    <span>{a.pdf_path ? '· PDF ✓' : '· No PDF'}</span>
-                  </div>
-                </div>
-
-                <button className="btn-edit" onClick={() => onEdit(a)} style={{
-                  fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
-                  padding: '6px 14px', border: '1px solid var(--border)',
-                  color: 'var(--text-dim)', background: 'transparent',
-                  cursor: 'pointer', textTransform: 'uppercase', whiteSpace: 'nowrap',
-                }}>EDIT</button>
-
-                <button onClick={() => onToggle(a)} style={{
-                  fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
-                  padding: '6px 14px', border: `1px solid ${a.published ? 'var(--green)' : 'var(--border)'}`,
-                  color: a.published ? 'var(--green)' : 'var(--text-dim)',
-                  background: a.published ? 'rgba(78,201,148,0.08)' : 'transparent',
-                  cursor: 'pointer', textTransform: 'uppercase', whiteSpace: 'nowrap',
-                }}>
-                  {a.published ? 'LIVE' : 'DRAFT'}
-                </button>
-
-                <button onClick={() => onDelete(a)} style={{
-                  fontFamily: 'DM Mono, monospace', fontSize: 9,
-                  background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)',
-                  padding: '6px 12px', cursor: 'pointer',
-                }}
-                  onMouseEnter={e => { (e.target as any).style.borderColor = 'var(--red)'; (e.target as any).style.color = 'var(--red)' }}
-                  onMouseLeave={e => { (e.target as any).style.borderColor = 'var(--border)'; (e.target as any).style.color = 'var(--text-dim)' }}
-                >DEL</button>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── Main Admin Page ───────────────────────────────────────────────────────────
-export default function AdminPage() {
-  const router   = useRouter()
+export default function HomePage() {
   const supabase = createClient()
-  const fileRef  = useRef<HTMLInputElement>(null)
-
-  const [analyses, setAnalyses]   = useState<Analysis[]>([])
-  const [form, setForm]           = useState<FormData>(EMPTY_FORM)
-  const [pdfFile, setPdfFile]     = useState<File | null>(null)
-  const [drag, setDrag]           = useState(false)
-  const [saving, setSaving]       = useState(false)
-  const [toast, setToast]         = useState<{ msg: string; ok: boolean } | null>(null)
-  const [tab, setTab]             = useState<'upload' | 'manage'>('upload')
-  const [userEmail, setUserEmail] = useState('')
-
-  const [editId, setEditId]                   = useState<string | null>(null)
-  const [existingPdfPath, setExistingPdfPath] = useState<string | null>(null)
-  const [existingPdfName, setExistingPdfName] = useState<string | null>(null)
-  const [replacePdf, setReplacePdf]           = useState(false)
+  const [analyses, setAnalyses] = useState<Analysis[]>([])
+  const [loading, setLoading]   = useState(true)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) { router.replace('/login'); return }
-      setUserEmail(user.email || '')
-    })
-    loadAnalyses()
+    async function load() {
+      const { data } = await (supabase as any)
+        .from('analyses')
+        .select('*')
+        .eq('published', true)
+        .order('created_at', { ascending: false })
+      if (data) setAnalyses(data as Analysis[])
+      setLoading(false)
+    }
+    load()
   }, [])
 
-  async function loadAnalyses() {
-    const { data } = await (supabase as any)
-      .from('analyses').select('*').order('created_at', { ascending: false })
-    if (data) setAnalyses(data as Analysis[])
+  async function openPdf(a: Analysis) {
+    if (!a.pdf_path) return
+    const { data } = await supabase.storage
+      .from('analyses-pdfs')
+      .createSignedUrl(a.pdf_path, 60 * 60)
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
   }
 
-  function showToast(msg: string, ok = true) {
-    setToast({ msg, ok })
-    setTimeout(() => setToast(null), 3500)
-  }
-
-  const handleFile = useCallback((file: File) => {
-    if (file.type !== 'application/pdf') { showToast('ONLY PDF FILES ACCEPTED', false); return }
-    if (file.size > 50 * 1024 * 1024)   { showToast('FILE TOO LARGE (MAX 50MB)', false); return }
-    setPdfFile(file)
-  }, [])
-
-  function startEdit(a: Analysis) {
-    setEditId(a.id)
-    setExistingPdfPath(a.pdf_path ?? null)
-    setExistingPdfName(a.pdf_name ?? null)
-    setReplacePdf(false); setPdfFile(null)
-    setForm({
-      ticker:        a.ticker,
-      title:         a.title,
-      description:   a.description ?? '',
-      rating:        a.rating,
-      sector:        a.sector ?? SECTORS[0].value,
-      analyst:       a.analyst ?? '',
-      current_price: a.current_price != null ? String(a.current_price) : '',
-      price_target:  a.price_target  != null ? String(a.price_target)  : '',
-      category:      (a as any).category ?? 'equity',
-    })
-    setTab('upload')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  function cancelEdit() {
-    setEditId(null); setExistingPdfPath(null); setExistingPdfName(null)
-    setReplacePdf(false); setPdfFile(null); setForm(EMPTY_FORM)
-  }
-
-  async function handleSave(publish: boolean) {
-    if (!form.ticker.trim() || !form.title.trim()) {
-      showToast('TICKER & TITLE ARE REQUIRED', false); return
-    }
-    setSaving(true)
-
-    let pdf_path = existingPdfPath
-    let pdf_name = existingPdfName
-
-    if (pdfFile && (!editId || replacePdf)) {
-      if (editId && existingPdfPath) {
-        await supabase.storage.from('analyses-pdfs').remove([existingPdfPath])
-      }
-      const ext  = pdfFile.name.split('.').pop()
-      const path = `${Date.now()}_${form.ticker.toUpperCase()}.${ext}`
-      const { error: uploadError } = await supabase.storage
-        .from('analyses-pdfs').upload(path, pdfFile, { cacheControl: '3600', upsert: false })
-      if (uploadError) { showToast(`UPLOAD FAILED: ${uploadError.message}`, false); setSaving(false); return }
-      pdf_path = path; pdf_name = pdfFile.name
-    }
-
-    const payload = {
-      ticker:        form.ticker.toUpperCase().trim(),
-      title:         form.title.trim(),
-      description:   form.description.trim() || null,
-      rating:        form.category === 'geo' ? ('WATCH' as Rating) : form.rating,
-      sector:        form.sector || null,
-      analyst:       form.analyst.trim() || null,
-      current_price: form.current_price ? parseFloat(form.current_price) : null,
-      price_target:  form.price_target  ? parseFloat(form.price_target)  : null,
-      category:      form.category,
-      pdf_path, pdf_name, published: publish,
-    }
-
-    let error: any = null
-    if (editId) {
-      ;({ error } = await (supabase as any).from('analyses').update(payload).eq('id', editId))
-    } else {
-      const { data: { user } } = await supabase.auth.getUser()
-      ;({ error } = await (supabase as any).from('analyses').insert({ ...payload, author_id: user?.id ?? null }))
-    }
-
-    if (error) {
-      showToast(`ERROR: ${error.message}`, false)
-    } else {
-      showToast(editId
-        ? (publish ? '✓ CHANGES PUBLISHED' : '✓ DRAFT UPDATED')
-        : (publish ? '✓ PUBLISHED LIVE' : '✓ SAVED AS DRAFT'))
-      cancelEdit(); loadAnalyses(); setTab('manage')
-    }
-    setSaving(false)
-  }
-
-  async function togglePublish(a: Analysis) {
-    const { error } = await (supabase as any)
-      .from('analyses').update({ published: !a.published }).eq('id', a.id)
-    if (!error) {
-      setAnalyses(prev => prev.map(x => x.id === a.id ? { ...x, published: !x.published } : x))
-      showToast(!a.published ? '✓ PUBLISHED' : '✓ SET TO DRAFT')
-    }
-  }
-
-  async function deleteAnalysis(a: Analysis) {
-    if (!confirm(`Delete "${a.title}"? This cannot be undone.`)) return
-    if (a.pdf_path) await supabase.storage.from('analyses-pdfs').remove([a.pdf_path])
-    const { error } = await (supabase as any).from('analyses').delete().eq('id', a.id)
-    if (!error) {
-      setAnalyses(prev => prev.filter(x => x.id !== a.id))
-      if (editId === a.id) cancelEdit()
-      showToast('✓ DELETED')
-    }
-  }
-
-  async function logout() { await supabase.auth.signOut(); router.replace('/') }
-
-  const F = (key: keyof FormData) => ({
-    value: form[key],
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-      setForm(f => ({ ...f, [key]: e.target.value }))
-  })
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%', fontFamily: 'DM Mono, monospace', fontSize: 12,
-    background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)',
-    color: 'var(--text)', padding: '14px 16px', outline: 'none',
-  }
-
-  const isEquity  = form.category === 'equity'
-  const catColor  = CATEGORY_COLORS[form.category] ?? '#c9a227'
-  const activeCat = CATEGORIES.find(c => c.value === form.category) ?? CATEGORIES[0]
+  const buyCount  = analyses.filter(a => a.rating === 'BUY').length
+  const holdCount = analyses.filter(a => a.rating === 'HOLD').length
+  const sellCount = analyses.filter(a => a.rating === 'SELL').length
 
   return (
     <>
       <style>{`
-        @keyframes fadeIn  { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes toastIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
-        input[type=number]::-webkit-inner-spin-button { -webkit-appearance:none }
-        .row-hover:hover { background: rgba(255,255,255,0.03) !important; }
-        .focus-gold:focus { border-color: var(--gold) !important; }
-        .btn-edit:hover { border-color: var(--gold) !important; color: var(--gold) !important; }
-        .cat-btn { transition: all .2s ease; }
-        .cat-btn:hover { opacity: 1 !important; }
-        select option { background: #0d1220; }
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Mono:wght@300;400&family=Lato:wght@300;400;700&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f0f0f0; color: #1a1a2e; font-family: 'Lato', sans-serif; }
+        @keyframes fadeUp  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+        .card-wrap {
+          background: #fff; border-radius: 2px; overflow: hidden;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+          animation: fadeUp 0.5s ease both;
+        }
+        .card-wrap:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.13); }
+        .report-btn {
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          background: #1a1a2e; color: #fff;
+          font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px;
+          padding: 11px 18px; border: none; cursor: pointer;
+          text-transform: uppercase; transition: background 0.2s; width: 100%;
+        }
+        .report-btn:hover { background: #c9a227; }
+        .report-btn-soon {
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          background: transparent; color: #bbb;
+          font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px;
+          padding: 11px 18px; border: 1px solid #e8e8e8; cursor: default;
+          text-transform: uppercase; width: 100%;
+        }
+        .nav-admin {
+          font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px;
+          background: transparent; border: 1px solid rgba(255,255,255,0.2);
+          color: rgba(255,255,255,0.5); padding: 6px 16px; cursor: pointer;
+          text-transform: uppercase; text-decoration: none; transition: all 0.2s;
+        }
+        .nav-admin:hover { border-color: #c9a227; color: #c9a227; }
       `}</style>
 
-      <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', zIndex: 0 }} />
-      <div style={{ position: 'fixed', inset: 0, opacity: 0.025, zIndex: 0, backgroundImage: 'linear-gradient(var(--gold) 1px,transparent 1px),linear-gradient(90deg,var(--gold) 1px,transparent 1px)', backgroundSize: '60px 60px' }} />
+      {/* ── HEADER ── */}
+      <header style={{ background: 'linear-gradient(180deg,#0f1629 0%,#131d35 100%)', borderBottom: '2px solid #c9a227' }}>
 
-      <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh', animation: 'fadeIn 0.4s ease' }}>
-
-        {/* NAV */}
-        <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 48px', borderBottom: '1px solid var(--border)', background: 'rgba(8,13,26,0.97)', backdropFilter: 'blur(20px)', position: 'sticky', top: 0, zIndex: 50 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 20, letterSpacing: 4, color: 'var(--gold)' }}>ALPHA DESK</div>
-            <div style={{ fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', border: '1px solid var(--border)', padding: '4px 10px' }}>ADMIN CONSOLE</div>
+        {/* Top bar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 40px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <div style={{ width: 100 }} />
+          <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 24, fontWeight: 400, color: '#fff', letterSpacing: 3 }}>
+            Alpha<span style={{ color: '#c9a227' }}>Desk</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>{userEmail}</span>
-            <a href="/" style={{ fontSize: 10, letterSpacing: 2, color: 'var(--text-dim)', textDecoration: 'none', padding: '6px 14px', border: '1px solid var(--border)', textTransform: 'uppercase' }}>← SITE</a>
-            <button onClick={logout} style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: 2, background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)', padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase' }}
-              onMouseEnter={e => { (e.target as any).style.borderColor = 'var(--red)'; (e.target as any).style.color = 'var(--red)' }}
-              onMouseLeave={e => { (e.target as any).style.borderColor = 'var(--border)'; (e.target as any).style.color = 'var(--text-dim)' }}
-            >LOGOUT</button>
+          <div style={{ width: 100, display: 'flex', justifyContent: 'flex-end' }}>
+            <a href="/admin" className="nav-admin">ADMIN</a>
           </div>
-        </nav>
-
-        <div style={{ maxWidth: 960, margin: '0 auto', padding: '64px 48px' }}>
-
-          <div style={{ marginBottom: 56 }}>
-            <div style={{ fontSize: 9, letterSpacing: 4, color: 'var(--gold)', textTransform: 'uppercase', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ display: 'block', width: 30, height: 1, background: 'var(--gold)' }} />
-              ADMIN PANEL
-            </div>
-            <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 52, fontWeight: 300, lineHeight: 0.95 }}>
-              Manage <em style={{ fontStyle: 'italic', color: 'var(--gold2)' }}>Research</em>
-            </h1>
-          </div>
-
-          {/* MAIN TABS */}
-          <div style={{ display: 'flex', marginBottom: 48, borderBottom: '1px solid var(--border)' }}>
-            {(['upload', 'manage'] as const).map(t => (
-              <button key={t} onClick={() => { setTab(t); if (t === 'manage') cancelEdit() }} style={{
-                fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: 3,
-                background: 'transparent', border: 'none',
-                borderBottom: tab === t ? '2px solid var(--gold)' : '2px solid transparent',
-                color: tab === t ? 'var(--gold)' : 'var(--text-dim)',
-                padding: '14px 28px', cursor: 'pointer', textTransform: 'uppercase', marginBottom: -1,
-              }}>
-                {t === 'upload' ? (editId ? '✎ EDIT ANALYSIS' : '+ NEW ANALYSIS') : `MANAGE (${analyses.length})`}
-              </button>
-            ))}
-          </div>
-
-          {/* UPLOAD / EDIT FORM */}
-          {tab === 'upload' && (
-            <div style={{ animation: 'fadeIn 0.3s ease' }}>
-
-              {editId && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', marginBottom: 32, border: '1px solid var(--gold)', background: 'rgba(201,168,76,0.06)' }}>
-                  <span style={{ fontSize: 10, letterSpacing: 3, color: 'var(--gold)', textTransform: 'uppercase' }}>✎ EDITING — {form.ticker}</span>
-                  <button onClick={() => { cancelEdit(); setTab('manage') }} style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2, background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)', padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase' }}
-                    onMouseEnter={e => { (e.target as any).style.borderColor = 'var(--red)'; (e.target as any).style.color = 'var(--red)' }}
-                    onMouseLeave={e => { (e.target as any).style.borderColor = 'var(--border)'; (e.target as any).style.color = 'var(--text-dim)' }}
-                  >✕ CANCEL</button>
-                </div>
-              )}
-
-              {/* Kategorie Auswahl */}
-              <div style={{ marginBottom: 32 }}>
-                <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 12 }}>Report Kategorie</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  {CATEGORIES.map(cat => {
-                    const active = form.category === cat.value
-                    const color  = CATEGORY_COLORS[cat.value]
-                    return (
-                      <button key={cat.value} className="cat-btn"
-                        onClick={() => setForm(f => ({ ...f, category: cat.value, sector: cat.value === 'equity' ? SECTORS[0].value : GEO_TOPICS[0] }))}
-                        style={{ fontFamily: 'DM Mono, monospace', padding: '18px 20px', border: `1px solid ${active ? color : 'var(--border)'}`, background: active ? `${color}12` : 'rgba(255,255,255,0.02)', cursor: 'pointer', textAlign: 'left', opacity: active ? 1 : 0.55 }}>
-                        <div style={{ fontSize: 18, marginBottom: 8, color }}>{cat.icon}</div>
-                        <div style={{ fontSize: 11, letterSpacing: 2, color: active ? color : 'var(--text)', textTransform: 'uppercase', marginBottom: 4 }}>{cat.label}</div>
-                        <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--text-dim)' }}>{cat.desc}</div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* PDF Drop Zone */}
-              {editId && existingPdfName && !replacePdf ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)', padding: '24px 28px', marginBottom: 40 }}>
-                  <div>
-                    <div style={{ fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 8 }}>CURRENT PDF</div>
-                    <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 18, fontWeight: 300 }}>{existingPdfName}</div>
-                  </div>
-                  <button onClick={() => setReplacePdf(true)} style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2, background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)', padding: '10px 18px', cursor: 'pointer', textTransform: 'uppercase' }}
-                    onMouseEnter={e => { (e.target as any).style.borderColor = 'var(--gold)'; (e.target as any).style.color = 'var(--gold)' }}
-                    onMouseLeave={e => { (e.target as any).style.borderColor = 'var(--border)'; (e.target as any).style.color = 'var(--text-dim)' }}
-                  >↑ REPLACE PDF</button>
-                </div>
-              ) : (
-                <div
-                  onClick={() => fileRef.current?.click()}
-                  onDragOver={e => { e.preventDefault(); setDrag(true) }}
-                  onDragLeave={() => setDrag(false)}
-                  onDrop={e => { e.preventDefault(); setDrag(false); handleFile(e.dataTransfer.files[0]) }}
-                  style={{ border: `2px dashed ${drag ? catColor : 'var(--border)'}`, background: drag ? `${catColor}10` : 'rgba(255,255,255,0.02)', padding: '56px 40px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.3s', marginBottom: 40 }}
-                >
-                  <div style={{ fontSize: 36, marginBottom: 14, color: catColor, opacity: drag ? 1 : 0.7 }}>{activeCat.icon}</div>
-                  <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 300, marginBottom: 8 }}>
-                    {pdfFile ? pdfFile.name : 'Drop PDF here or click to browse'}
-                  </div>
-                  <div style={{ fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-                    {pdfFile ? `${(pdfFile.size / 1024 / 1024).toFixed(2)} MB — PDF READY` : 'PDF format · Max 50MB'}
-                  </div>
-                  {editId && replacePdf && (
-                    <button onClick={e => { e.stopPropagation(); setReplacePdf(false); setPdfFile(null) }}
-                      style={{ marginTop: 16, fontFamily: 'DM Mono, monospace', fontSize: 9, background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)', padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase' }}
-                    >✕ KEEP EXISTING PDF</button>
-                  )}
-                  <input ref={fileRef} type="file" accept=".pdf" style={{ display: 'none' }}
-                    onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
-                </div>
-              )}
-
-              {/* Form Fields */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>{isEquity ? 'Ticker Symbol *' : 'Kürzel / ID *'}</label>
-                  <input value={form.ticker} onChange={e => setForm(f => ({ ...f, ticker: e.target.value.toUpperCase() }))} className="focus-gold" placeholder={isEquity ? 'AAPL' : 'GEO-001'} style={inputStyle} />
-                </div>
-
-                {isEquity && (
-                  <div>
-                    <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Rating</label>
-                    <select {...F('rating')} className="focus-gold" style={{ ...inputStyle, cursor: 'pointer' }}>
-                      {RATINGS.map(r => <option key={r} value={r}>{r}</option>)}
-                    </select>
-                  </div>
-                )}
-
-                <div style={{ gridColumn: '1/-1' }}>
-                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Report Title *</label>
-                  <input {...F('title')} className="focus-gold" placeholder={isEquity ? 'e.g. AAPL — Structural Rerating Incoming' : 'e.g. Zollkrieg 2025 — Auswirkungen auf europäische Märkte'} style={inputStyle} />
-                </div>
-
-                <div style={{ gridColumn: '1/-1' }}>
-                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Short Description</label>
-                  <textarea {...F('description')} className="focus-gold" rows={3} placeholder={isEquity ? 'Brief overview of the investment thesis...' : 'Kurze Zusammenfassung der geopolitischen Situation und Marktrelevanz...'} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.7 }} />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>{isEquity ? 'Sektor' : 'Themenbereich'}</label>
-                  <select {...F('sector')} className="focus-gold" style={{ ...inputStyle, cursor: 'pointer' }}>
-                    {isEquity
-                      ? SECTORS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)
-                      : GEO_TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Analyst</label>
-                  <input {...F('analyst')} className="focus-gold" placeholder="G. Stephan" style={inputStyle} />
-                </div>
-
-                {isEquity && (
-                  <>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Current Price</label>
-                      <input {...F('current_price')} className="focus-gold" placeholder="189.42" type="number" step="0.01" style={inputStyle} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Price Target</label>
-                      <input {...F('price_target')} className="focus-gold" placeholder="220.00" type="number" step="0.01" style={inputStyle} />
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
-                <button onClick={() => handleSave(false)} disabled={saving} style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: 3, background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)', padding: '16px 32px', cursor: saving ? 'not-allowed' : 'pointer', textTransform: 'uppercase' }}>
-                  {editId ? 'SAVE AS DRAFT' : 'SAVE DRAFT'}
-                </button>
-                <button onClick={() => handleSave(true)} disabled={saving} style={{ flex: 1, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: 3, background: saving ? `${catColor}66` : catColor, border: 'none', color: 'var(--bg)', padding: '16px 40px', cursor: saving ? 'not-allowed' : 'pointer', textTransform: 'uppercase', transition: 'all 0.3s' }}>
-                  {saving ? 'SAVING...' : editId ? 'UPDATE & PUBLISH →' : 'PUBLISH NOW →'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* MANAGE TAB */}
-          {tab === 'manage' && (
-            <div style={{ animation: 'fadeIn 0.3s ease' }}>
-              {analyses.length === 0 ? (
-                <div style={{ padding: '80px 0', textAlign: 'center', color: 'var(--text-dim)' }}>
-                  <div style={{ fontSize: 40, opacity: 0.3, marginBottom: 20 }}>◈</div>
-                  <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 24, fontWeight: 300 }}>No analyses yet</div>
-                </div>
-              ) : (
-                <ManageList
-                  analyses={analyses}
-                  onEdit={startEdit}
-                  onToggle={togglePublish}
-                  onDelete={deleteAnalysis}
-                />
-              )}
-            </div>
-          )}
         </div>
-      </div>
 
-      {toast && (
-        <div style={{ position: 'fixed', bottom: 40, right: 40, zIndex: 300, background: 'var(--bg2)', border: `1px solid ${toast.ok ? 'var(--gold)' : 'var(--red)'}`, padding: '16px 28px', fontSize: 11, letterSpacing: 2, color: toast.ok ? 'var(--gold)' : 'var(--red)', animation: 'toastIn 0.3s ease', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-          {toast.msg}
+        {/* Sub nav */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '9px 40px' }}>
+          <span style={{ fontSize: 9, letterSpacing: 3, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+            RESEARCH ANALYSEN
+          </span>
         </div>
-      )}
+
+        {/* Hero */}
+        <div style={{ textAlign: 'center', padding: '48px 40px 52px', animation: 'fadeUp 0.6s ease' }}>
+          <div style={{ fontSize: 9, letterSpacing: 5, color: 'rgba(201,162,39,0.75)', marginBottom: 18, textTransform: 'uppercase' }}>
+            INSTITUTIONAL  EQUITY  RESEARCH
+          </div>
+          <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, fontSize: 52, color: '#fff', lineHeight: 1.1, marginBottom: 16 }}>
+            Equity Analysis &amp;&nbsp;
+            <em style={{ fontStyle: 'italic', color: '#c9a84c' }}>Market Intelligence</em>
+          </h1>
+          <div style={{ width: 56, height: 2, background: '#c9a227', margin: '0 auto 18px' }} />
+          <div style={{ fontSize: 10, letterSpacing: 4, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+            PROFESSIONAL RESEARCH · INDEPENDENT ANALYSIS
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div style={{ display: 'flex', borderTop: '1px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.2)' }}>
+          {[
+            { n: loading ? '—' : String(analyses.length), label: 'Total Reports',  dot: null       },
+            { n: loading ? '—' : String(buyCount),         label: 'Buy Ratings',    dot: '#4ec994'  },
+            { n: loading ? '—' : String(holdCount),        label: 'Hold Ratings',   dot: '#c9a84c'  },
+            { n: loading ? '—' : String(sellCount),        label: 'Sell Ratings',   dot: '#e05555'  },
+          ].map((s, i) => (
+            <div key={i} style={{ flex: 1, padding: '22px 40px', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 40, fontWeight: 300, color: '#e8e6e0', lineHeight: 1 }}>{s.n}</span>
+                {s.dot && <span style={{ width: 7, height: 7, borderRadius: '50%', background: s.dot, display: 'inline-block', marginBottom: 3 }} />}
+              </div>
+              <div style={{ fontSize: 9, letterSpacing: 2, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginTop: 5 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </header>
+
+      {/* ── MAIN ── */}
+      <main style={{ maxWidth: 1200, margin: '0 auto', padding: '52px 40px 80px' }}>
+
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 36 }}>
+          <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 26, fontWeight: 400 }}>Published Reports</h2>
+          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: 2, color: '#999', textTransform: 'uppercase' }}>
+            ({analyses.length} AVAILABLE)
+          </span>
+        </div>
+
+        {loading ? (
+          <div style={{ padding: '80px 0', textAlign: 'center', color: '#aaa', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: 3 }}>LOADING...</div>
+        ) : analyses.length === 0 ? (
+          <div style={{ padding: '80px 0', textAlign: 'center' }}>
+            <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, fontWeight: 300, color: '#aaa' }}>No reports published yet</div>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24 }}>
+            {analyses.map((a, i) => {
+              const badge  = BADGE[a.rating] ?? BADGE.WATCH
+              const upside = a.current_price && a.price_target
+                ? (((a.price_target - a.current_price) / a.current_price) * 100).toFixed(1)
+                : null
+              const hasPdf = !!a.pdf_path
+
+              return (
+                <div key={a.id} className="card-wrap" style={{ animationDelay: `${i * 0.07}s` }}>
+
+                  {/* Cover */}
+                  <div style={{ position: 'relative', height: 160, overflow: 'hidden' }}>
+                    <img src={getSectorImage(a.sector ?? null)} alt={a.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(10,15,35,0.88) 0%,rgba(10,15,35,0.05) 55%)' }} />
+
+                    {/* Sector tag */}
+                    <div style={{ position: 'absolute', top: 10, left: 10, fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: 2, background: 'rgba(10,15,35,0.72)', color: 'rgba(255,255,255,0.65)', padding: '3px 8px', textTransform: 'uppercase', backdropFilter: 'blur(4px)' }}>
+                      EQUITY
+                    </div>
+
+                    {/* Rating badge */}
+                    <div style={{ position: 'absolute', top: 10, right: 10, fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 1, background: badge.bg, color: badge.color, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ fontSize: 7 }}>▲</span>{a.rating}
+                    </div>
+
+                    {/* Title */}
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 14px' }}>
+                      <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 16, fontWeight: 400, color: '#fff', lineHeight: 1.3, marginBottom: 3 }}>{a.title}</div>
+                      {a.sector && <div style={{ fontSize: 8, letterSpacing: 2, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase' }}>{a.sector}</div>}
+                    </div>
+                  </div>
+
+                  {/* Prices */}
+                  <div style={{ padding: '14px 16px 0' }}>
+                    {(a.current_price || a.price_target || upside) && (
+                      <div style={{ display: 'flex', gap: 20, paddingBottom: 12, marginBottom: 12, borderBottom: '1px solid #f2f2f2' }}>
+                        {a.current_price && (
+                          <div>
+                            <div style={{ fontSize: 8, letterSpacing: 2, color: '#aaa', textTransform: 'uppercase', marginBottom: 2 }}>KURS</div>
+                            <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 20, color: '#1a1a2e' }}>
+                              €{a.current_price.toLocaleString('de-DE', { minimumFractionDigits: 2 })}
+                            </div>
+                          </div>
+                        )}
+                        {a.price_target && (
+                          <div>
+                            <div style={{ fontSize: 8, letterSpacing: 2, color: '#aaa', textTransform: 'uppercase', marginBottom: 2 }}>ZIEL</div>
+                            <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 20, color: '#c9a227' }}>
+                              €{a.price_target.toLocaleString('de-DE', { minimumFractionDigits: 2 })}
+                            </div>
+                          </div>
+                        )}
+                        {upside && (
+                          <div>
+                            <div style={{ fontSize: 8, letterSpacing: 2, color: '#aaa', textTransform: 'uppercase', marginBottom: 2 }}>UPSIDE</div>
+                            <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 20, color: parseFloat(upside) >= 0 ? '#27ae60' : '#e05555' }}>
+                              {parseFloat(upside) >= 0 ? '+' : ''}{upside}%
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Bullets */}
+                    <div style={{ marginBottom: 14 }}>
+                      {[
+                        a.price_target
+                          ? `${a.rating} Rating · Kursziel €${a.price_target.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`
+                          : `${a.rating} Rating`,
+                        upside ? `Upside-Potenzial: ${parseFloat(upside) >= 0 ? '+' : ''}${upside}%` : null,
+                        a.analyst ? `Analyst: ${a.analyst}` : null,
+                      ].filter(Boolean).map((item, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
+                          <span style={{ color: '#c9a227', fontSize: 12 }}>✓</span>
+                          <span style={{ fontSize: 11, color: '#555' }}>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* CTA */}
+                    <div style={{ marginBottom: 14 }}>
+                      {hasPdf ? (
+                        <button onClick={() => openPdf(a)} className="report-btn">↓ REPORT ÖFFNEN</button>
+                      ) : (
+                        <div className="report-btn-soon">+ BALD VERFÜGBAR</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div style={{ padding: '9px 16px', borderTop: '1px solid #f2f2f2', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {a.sector && (
+                      <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: 1, background: '#faf5e8', color: '#c9a227', padding: '2px 7px', textTransform: 'uppercase' }}>
+                        {a.sector.length > 14 ? a.sector.slice(0, 14) + '…' : a.sector}
+                      </span>
+                    )}
+                    <span style={{ fontSize: 9, color: '#ccc', marginLeft: 'auto' }}>
+                      {new Date(a.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    </span>
+                    <span style={{ fontSize: 9, color: '#ccc' }}>·</span>
+                    <span style={{ fontSize: 9, color: '#ccc' }}>
+                      {new Date(a.created_at).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </main>
+
+      <footer style={{ background: '#0f1629', borderTop: '1px solid rgba(255,255,255,0.07)', padding: '28px 40px', textAlign: 'center' }}>
+        <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 17, color: 'rgba(255,255,255,0.25)', letterSpacing: 3, marginBottom: 6 }}>
+          Alpha<span style={{ color: '#c9a227' }}>Desk</span>
+        </div>
+        <div style={{ fontSize: 9, letterSpacing: 2, color: 'rgba(255,255,255,0.18)', textTransform: 'uppercase' }}>
+          FOR INFORMATIONAL PURPOSES ONLY · NOT FINANCIAL ADVICE
+        </div>
+      </footer>
     </>
   )
 }
