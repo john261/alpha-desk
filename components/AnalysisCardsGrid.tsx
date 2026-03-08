@@ -479,8 +479,8 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
 
         .ac-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-          gap: 22px;
+          grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+          gap: 24px;
         }
 
         .ac-card {
@@ -617,26 +617,31 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
 
         /* Filter Tabs */
         .ac-tabs {
-          display: flex; gap: 0; margin-bottom: 24px;
-          border-bottom: 1px solid #e2e8f0;
+          display: flex; gap: 6px; margin-bottom: 28px;
+          padding-bottom: 0;
         }
         .ac-tab {
           font-family: 'DM Mono', monospace;
-          font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
-          background: transparent; border: none;
-          border-bottom: 2px solid transparent;
-          color: #94a3b8; padding: 12px 24px;
-          cursor: pointer; margin-bottom: -1px;
+          font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+          background: #f1f5f9; border: 1px solid #e2e8f0;
+          color: #94a3b8; padding: 9px 18px;
+          cursor: pointer;
           transition: all 0.2s ease;
           display: flex; align-items: center; gap: 7px;
         }
-        .ac-tab:hover { color: var(--tab-color, #94a3b8); }
-        .ac-tab-active {
-          color: var(--tab-color, #94a3b8) !important;
-          border-bottom-color: var(--tab-color, #94a3b8) !important;
+        .ac-tab:hover {
+          background: #e8edf5;
+          color: #475569;
+          border-color: #cbd5e1;
         }
+        .ac-tab-active {
+          background: var(--tab-color, #94a3b8) !important;
+          border-color: var(--tab-color, #94a3b8) !important;
+          color: #fff !important;
+        }
+        .ac-tab-active .ac-tab-count { opacity: 0.75; }
         .ac-tab-count {
-          font-size: 8px; opacity: 0.6; letter-spacing: 1px;
+          font-size: 8px; opacity: 0.55; letter-spacing: 1px;
         }
 
         @media (max-width:640px) {
