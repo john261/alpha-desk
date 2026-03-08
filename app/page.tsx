@@ -127,38 +127,6 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* ── ANALYST TRACK RECORD BAR ── */}
-      <div style={{
-        background: 'rgba(201,162,39,0.07)',
-        borderBottom: '1px solid rgba(201,162,39,0.2)',
-        padding: '12px 48px',
-        display: 'flex', alignItems: 'center', gap: 0, overflowX: 'auto',
-      }}>
-        <div style={{ fontSize: 9, letterSpacing: 4, color: 'rgba(201,162,39,0.6)', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace', marginRight: 32, whiteSpace: 'nowrap' }}>
-          ANALYST TRACK RECORD
-        </div>
-        {[
-          { val: '71%',   lbl: 'TREFFERQUOTE',  color: '#4ec994' },
-          { val: '+42%',  lbl: 'Ø RENDITE',      color: '#4ec994' },
-          { val: '38',    lbl: 'REPORTS',        color: '#e8e6e0' },
-          { val: '12 Mo', lbl: 'Ø HALTEDAUER',   color: '#e8e6e0' },
-          { val: '94%',   lbl: 'BUY ACCURACY',   color: '#4ec994' },
-        ].map((m, i) => (
-          <div key={i} style={{
-            display: 'flex', flexDirection: 'column', gap: 2,
-            paddingLeft: 24, marginLeft: i === 0 ? 0 : 24,
-            borderLeft: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.08)',
-          }}>
-            <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: m.color, lineHeight: 1 }}>{m.val}</span>
-            <span style={{ fontSize: 8, letterSpacing: 2, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace' }}>{m.lbl}</span>
-          </div>
-        ))}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 20, paddingLeft: 32 }}>
-          <a href="/methodology" style={{ fontSize: 8, letterSpacing: 2, color: 'rgba(201,162,39,0.55)', textDecoration: 'none', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace', borderBottom: '1px solid rgba(201,162,39,0.25)', paddingBottom: 1, whiteSpace: 'nowrap' }}>Methodology →</a>
-          <a href="/disclaimer"  style={{ fontSize: 8, letterSpacing: 2, color: 'rgba(255,255,255,0.2)',  textDecoration: 'none', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace', borderBottom: '1px solid rgba(255,255,255,0.08)',  paddingBottom: 1, whiteSpace: 'nowrap' }}>Disclaimer</a>
-        </div>
-      </div>
-
       {/* ── MAIN ── */}
       <main style={{ maxWidth: 1400, margin: '0 auto', padding: '40px 48px 80px' }}>
 
