@@ -23,14 +23,19 @@ export default function HomePage() {
       const withUrls = await Promise.all(
         (data as Analysis[]).map(async (a) => {
           if (!a.pdf_path) return { ...a, pdfUrl: null }
-          const { data: signed } = await supabase.storage
-            .from('analyses-pdfs')
-            .createSignedUrl(a.pdf_path, 60 * 60)
-          return { ...a, pdfUrl: signed?.signedUrl ?? null }
+          try {
+            const { data: signed, error } = await supabase.storage
+              .from('analyses-pdfs')
+              .createSignedUrl(a.pdf_path, 60 * 60 * 24) // 24h statt 1h
+            if (error || !signed?.signedUrl) return { ...a, pdfUrl: null }
+            return { ...a, pdfUrl: signed.signedUrl }
+          } catch {
+            return { ...a, pdfUrl: null }
+          }
         })
       )
 
-      setAnalyses(withUrls as any)
+      setAnalyses(withUrls)
       setLoading(false)
     }
     load()

@@ -17,6 +17,8 @@ export interface Analysis {
   pdf_name: string | null
   published: boolean
   author_id: string | null
+  category: string | null   // 'equity' | 'geo' etc.
+  pdfUrl?: string | null    // client-side signed URL, not in DB
 }
 
 export type Database = {
