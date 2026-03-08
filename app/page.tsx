@@ -20,7 +20,6 @@ export default function HomePage() {
 
       if (!data) { setLoading(false); return }
 
-      // PDF signed URLs für alle Analysen generieren
       const withUrls = await Promise.all(
         (data as Analysis[]).map(async (a) => {
           if (!a.pdf_path) return { ...a, pdfUrl: null }
@@ -48,6 +47,18 @@ export default function HomePage() {
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #ebebeb; color: #1a1a2e; font-family: 'Lato', sans-serif; }
         @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ── Force 3 columns ── */
+        .ac-grid {
+          grid-template-columns: repeat(3, 1fr) !important;
+        }
+        @media (max-width: 1024px) {
+          .ac-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 640px) {
+          .ac-grid { grid-template-columns: 1fr !important; }
+        }
+
         .nav-admin {
           font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px;
           background: transparent; border: 1px solid rgba(255,255,255,0.2);
@@ -55,6 +66,12 @@ export default function HomePage() {
           text-transform: uppercase; text-decoration: none; transition: all 0.2s;
         }
         .nav-admin:hover { border-color: #c9a227; color: #c9a227; }
+
+        .footer-link {
+          font-size: 8px; letter-spacing: 2px; color: rgba(255,255,255,0.3);
+          text-transform: uppercase; text-decoration: none; transition: color 0.2s;
+        }
+        .footer-link:hover { color: #c9a227; }
       `}</style>
 
       {/* ── HEADER ── */}
@@ -131,12 +148,25 @@ export default function HomePage() {
         )}
       </main>
 
-      <footer style={{ background: '#0c1428', borderTop: '1px solid rgba(255,255,255,0.07)', padding: '28px 48px', textAlign: 'center' }}>
-        <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 17, color: 'rgba(255,255,255,0.22)', letterSpacing: 3, marginBottom: 6 }}>
-          Alpha<span style={{ color: '#c9a227' }}>Desk</span>
+      {/* ── FOOTER ── */}
+      <footer style={{ background: '#0c1428', borderTop: '2px solid #c9a227' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 17, color: 'rgba(255,255,255,0.22)', letterSpacing: 3 }}>
+            Alpha<span style={{ color: '#c9a227' }}>Desk</span>
+          </div>
+          <div style={{ fontSize: 8, letterSpacing: 2, color: 'rgba(255,255,255,0.18)', textTransform: 'uppercase', textAlign: 'center' }}>
+            FOR INFORMATIONAL PURPOSES ONLY · NOT FINANCIAL ADVICE
+          </div>
+          <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+            <a href="/impressum"   className="footer-link">Impressum</a>
+            <a href="/datenschutz" className="footer-link">Datenschutz</a>
+            <a href="/agb"         className="footer-link">AGB</a>
+          </div>
         </div>
-        <div style={{ fontSize: 9, letterSpacing: 2, color: 'rgba(255,255,255,0.15)', textTransform: 'uppercase' }}>
-          FOR INFORMATIONAL PURPOSES ONLY · NOT FINANCIAL ADVICE
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', textAlign: 'center', padding: '12px 48px' }}>
+          <span style={{ fontSize: 8, letterSpacing: 1, color: 'rgba(255,255,255,0.15)', textTransform: 'uppercase' }}>
+            © {new Date().getFullYear()} AlphaDesk
+          </span>
         </div>
       </footer>
     </>
