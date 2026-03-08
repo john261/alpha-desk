@@ -15,9 +15,10 @@ type Analysis = {
   price_target?: number | null
   created_at: string
   pdfUrl?: string | null
+  category?: string | null
 }
 
-// ─── Realtime price hook (unverändert) ───────────────────────────────────────
+// ─── Realtime price hook ──────────────────────────────────────────────────────
 function useRealtimePrice(ticker: string, priceTarget: number | null | undefined) {
   const [price, setPrice]             = useState<number | null>(null)
   const [marketState, setMarketState] = useState<string | null>(null)
@@ -55,76 +56,140 @@ function useRealtimePrice(ticker: string, priceTarget: number | null | undefined
   return { price, upside, marketState, lastUpdated, loading, error }
 }
 
-// ─── Sector → Unsplash image (vollautomatisch aus sector/title) ───────────────
-// Jeder Sektor hat ein visuell klar unterscheidbares Bild (EN + DE)
-const SECTOR_IMAGES: [string, string][] = [
-  // Technologie — blaue Platine
-  ['tech',           'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop'],
-  ['technologi',     'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop'],
-  ['software',       'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=700&q=80&fit=crop'],
-  // Versicherung — Schirm/Schutz (klar anders)
-  ['versicherung',   'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=700&q=80&fit=crop'],
-  ['insurance',      'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=700&q=80&fit=crop'],
-  // Finanzen / Bank — Skyline
-  ['finanz',         'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop'],
-  ['finance',        'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop'],
-  ['bank',           'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop'],
-  // Energie — Windräder
-  ['energie',        'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=700&q=80&fit=crop'],
-  ['energy',         'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=700&q=80&fit=crop'],
-  // Gesundheit / Pharma — Labor
-  ['gesundheit',     'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80&fit=crop'],
-  ['health',         'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80&fit=crop'],
-  ['pharma',         'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=700&q=80&fit=crop'],
-  // Automobil — Straße/Auto
-  ['automobil',      'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop'],
-  ['fahrzeug',       'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop'],
-  ['auto',           'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=80&fit=crop'],
-  // Konsumgüter — Supermarkt
-  ['konsumg',        'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop'],
-  ['consumer',       'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop'],
-  ['retail',         'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop'],
-  ['handel',         'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop'],
-  // Immobilien — Gebäude
-  ['immobilien',     'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop'],
-  ['real estate',    'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop'],
-  // Medien — Kamera
-  ['medien',         'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=700&q=80&fit=crop'],
-  ['media',          'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=700&q=80&fit=crop'],
-  // Industrie — Fabrik
-  ['industrie',      'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=700&q=80&fit=crop'],
-  ['industrial',     'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=700&q=80&fit=crop'],
-  // Chemie — Reagenzgläser (orange/warm)
-  ['chemie',         'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80&fit=crop'],
-  ['chemical',       'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80&fit=crop'],
-  // Telekommunikation — Antennen
-  ['telekom',        'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&q=80&fit=crop'],
-  ['telecom',        'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&q=80&fit=crop'],
-  // Transport / Logistik — Container
-  ['transport',      'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=700&q=80&fit=crop'],
-  ['logistik',       'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=700&q=80&fit=crop'],
-  // Lebensmittel
-  ['lebensmittel',   'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700&q=80&fit=crop'],
-  ['food',           'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700&q=80&fit=crop'],
-  // Rohstoffe / Bergbau — Bergwerk
-  ['rohstoff',       'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop'],
-  ['bergbau',        'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop'],
-]
-const SECTOR_DEFAULT = 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop'
-
-function normalizeStr(str: string): string {
-  return str.toLowerCase()
-    .replace(/ü/g, "u").replace(/ö/g, "o").replace(/ä/g, "a").replace(/ß/g, "ss")
+// ─── Exaktes Sektor → Bild Mapping ───────────────────────────────────────────
+// Jeder Sektor aus dem Dropdown bekommt sein eigenes, visuell einzigartiges Bild.
+const SECTOR_IMAGE_MAP: Record<string, string> = {
+  // Technologie — blaue Platine/Circuit
+  'Technologie':
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop',
+  // Software & IT — Code auf Monitor
+  'Software & IT':
+    'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=700&q=80&fit=crop',
+  // Halbleiter — Chip Nahaufnahme
+  'Halbleiter':
+    'https://images.unsplash.com/photo-1601132359864-c974e79890ac?w=700&q=80&fit=crop',
+  // Automobil & OEM — Autofabrik/Produktion
+  'Automobil & OEM':
+    'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&q=80&fit=crop',
+  // Autovermietung & Mobilität — Fahrzeugflotte/Parkhaus
+  'Autovermietung & Mobilität':
+    'https://images.unsplash.com/photo-1609520778382-0f2afc1ebb26?w=700&q=80&fit=crop',
+  // Versicherung — Schirm/Schutz
+  'Versicherung':
+    'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=700&q=80&fit=crop',
+  // Banken & Finanzen — Frankfurter Skyline/Bankenviertel
+  'Banken & Finanzen':
+    'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop',
+  // Immobilien — modernes Gebäude
+  'Immobilien':
+    'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop',
+  // Energie & Utilities — Kraftwerk/Turbinen
+  'Energie & Utilities':
+    'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=700&q=80&fit=crop',
+  // Erneuerbare Energien — Windräder
+  'Erneuerbare Energien':
+    'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=700&q=80&fit=crop',
+  // Pharma & Biotech — Labor/Reagenzgläser blau
+  'Pharma & Biotech':
+    'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=700&q=80&fit=crop',
+  // Medizintechnik — MRT/med. Gerät
+  'Medizintechnik':
+    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80&fit=crop',
+  // Konsumgüter & Handel — Supermarkt/Regal
+  'Konsumgüter & Handel':
+    'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop',
+  // Lebensmittel & Getränke — Markt/frische Produkte
+  'Lebensmittel & Getränke':
+    'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700&q=80&fit=crop',
+  // Industrie & Maschinenbau — Fabrikhalle
+  'Industrie & Maschinenbau':
+    'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=700&q=80&fit=crop',
+  // Chemie & Werkstoffe — Reagenzgläser orange/warm
+  'Chemie & Werkstoffe':
+    'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80&fit=crop',
+  // Telekommunikation — Antennen/Masten
+  'Telekommunikation':
+    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&q=80&fit=crop',
+  // Medien & Entertainment — Kamera/Studio
+  'Medien & Entertainment':
+    'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=700&q=80&fit=crop',
+  // Transport & Logistik — Containerschiff/Hafen
+  'Transport & Logistik':
+    'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=700&q=80&fit=crop',
+  // Luft- & Raumfahrt — Flugzeug/Cockpit
+  'Luft- & Raumfahrt':
+    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=700&q=80&fit=crop',
+  // Rüstung & Defense — Militär/Defense
+  'Rüstung & Defense':
+    'https://images.unsplash.com/photo-1547483238-f400e65ccd56?w=700&q=80&fit=crop',
+  // Rohstoffe & Bergbau — Bergwerk/Mine
+  'Rohstoffe & Bergbau':
+    'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop',
+  // E-Commerce & Plattformen — Online Shopping/Pakete
+  'E-Commerce & Plattformen':
+    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=700&q=80&fit=crop',
+  // Luxury & Fashion — Luxusgüter
+  'Luxury & Fashion':
+    'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=700&q=80&fit=crop',
+  // Gaming & Esports — Controller/Screen
+  'Gaming & Esports':
+    'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=700&q=80&fit=crop',
+  // Künstliche Intelligenz — KI/Neural Network
+  'Künstliche Intelligenz':
+    'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=700&q=80&fit=crop',
+  // Krypto & Blockchain — Bitcoin/Digital
+  'Krypto & Blockchain':
+    'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=700&q=80&fit=crop',
+  // Agrar & Forst — Felder/Landwirtschaft
+  'Agrar & Forst':
+    'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=700&q=80&fit=crop',
+  // Sonstiges — Allgemein/Markt
+  'Sonstiges':
+    'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop',
 }
 
-function getSectorImage(a: Analysis): string {
-  const s = normalizeStr(a.sector ?? '')
-  const t = normalizeStr(a.title ?? '')
-  for (const [key, url] of SECTOR_IMAGES) {
-    const k = normalizeStr(key)
-    if (s.includes(k) || t.includes(k)) return url
+// ─── Geopolitik-Kategorie Bilder (nach Themenbereich) ────────────────────────
+const GEO_IMAGE_MAP: Record<string, string> = {
+  'USA & Fed-Politik':
+    'https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=700&q=80&fit=crop',
+  'Europa & EZB':
+    'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=700&q=80&fit=crop',
+  'China & Asien':
+    'https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=700&q=80&fit=crop',
+  'Naher Osten':
+    'https://images.unsplash.com/photo-1512632578888-169bbbc64f33?w=700&q=80&fit=crop',
+  'Russland & Ukraine':
+    'https://images.unsplash.com/photo-1580974852861-c381510bc98a?w=700&q=80&fit=crop',
+  'NATO & Verteidigung':
+    'https://images.unsplash.com/photo-1547483238-f400e65ccd56?w=700&q=80&fit=crop',
+  'Handelskrieg & Zölle':
+    'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=700&q=80&fit=crop',
+  'Rohstoff-Geopolitik':
+    'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop',
+  'Währungskrisen':
+    'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=700&q=80&fit=crop',
+  'Sanktionen & Embargos':
+    'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=700&q=80&fit=crop',
+  'Globale Lieferketten':
+    'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=700&q=80&fit=crop',
+  'Energiesicherheit':
+    'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=700&q=80&fit=crop',
+  'Sonstiges':
+    'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=700&q=80&fit=crop',
+}
+
+// Fallback
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop'
+
+function getCardImage(a: Analysis): string {
+  const category = a.category ?? 'equity'
+  const sector   = a.sector ?? ''
+
+  if (category === 'geo') {
+    return GEO_IMAGE_MAP[sector] ?? DEFAULT_IMAGE
   }
-  return SECTOR_DEFAULT
+  // Equity: exaktes Matching auf den Dropdown-Wert
+  return SECTOR_IMAGE_MAP[sector] ?? DEFAULT_IMAGE
 }
 
 // ─── Rating config ────────────────────────────────────────────────────────────
@@ -134,6 +199,16 @@ const RATING_CFG = {
   SELL:  { bg: '#dc2626', text: '#fee2e2', icon: '▼' },
   WATCH: { bg: '#334155', text: '#e2e8f0', icon: '◎' },
 } as const
+
+// Kategorie-Farben für Badge
+const CAT_COLORS: Record<string, string> = {
+  equity: '#c9a227',
+  geo:    '#38bdf8',
+}
+const CAT_LABELS: Record<string, string> = {
+  equity: 'Equity',
+  geo:    'Geopolitik',
+}
 
 function fmt(n: number) {
   return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -146,8 +221,10 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
   const { price, upside, marketState, lastUpdated, loading, error } =
     useRealtimePrice(a.ticker, a.price_target)
 
-  const rc = RATING_CFG[a.rating] ?? RATING_CFG.WATCH
+  const rc     = RATING_CFG[a.rating] ?? RATING_CFG.WATCH
   const isOpen = marketState === 'REGULAR'
+  const cat    = a.category ?? 'equity'
+  const catColor = CAT_COLORS[cat] ?? '#c9a227'
 
   const displayPrice  = price ?? a.current_price
   const displayUpside = price != null
@@ -156,7 +233,6 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         ? ((a.price_target - a.current_price) / a.current_price) * 100
         : null)
 
-  // Checkmarks — automatisch aus vorhandenen Feldern gebaut
   const checks: string[] = []
   if (a.rating && a.price_target)
     checks.push(`${a.rating} Rating · Kursziel €${fmt(a.price_target)}`)
@@ -182,7 +258,7 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
       <div className="ac-img-wrap">
         {!imgError ? (
           <img
-            src={getSectorImage(a)}
+            src={getCardImage(a)}
             alt={a.title}
             className="ac-img"
             onError={() => setImgError(true)}
@@ -198,8 +274,13 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
           <span>{a.rating}</span>
         </div>
 
-        {/* Live-Indikator wenn Markt offen */}
-        {isOpen && (
+        {/* Kategorie-Badge oben links */}
+        <div className="ac-cat-badge" style={{ color: catColor, borderColor: `${catColor}55`, background: `${catColor}18` }}>
+          {CAT_LABELS[cat] ?? cat}
+        </div>
+
+        {/* Live-Indikator wenn Markt offen (nur Equity) */}
+        {isOpen && cat === 'equity' && (
           <div className="ac-live">
             <span className="ac-live-dot" />
             <span>LIVE</span>
@@ -214,8 +295,8 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         </div>
       </div>
 
-      {/* ── Preis-Leiste ────────────────────────────────────────── */}
-      {(displayPrice || a.price_target) && (
+      {/* ── Preis-Leiste (nur Equity mit Preisdaten) ────────────── */}
+      {cat === 'equity' && (displayPrice || a.price_target) && (
         <div className="ac-prices">
           <div className="ac-price-cell">
             <div className="ac-price-label">
@@ -249,12 +330,12 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         </div>
       )}
 
-      {/* ── Body: Checkmarks ────────────────────────────────────── */}
+      {/* ── Body ────────────────────────────────────────────────── */}
       <div className="ac-body">
         <ul className="ac-checks">
           {checks.slice(0, 3).map((c, i) => (
             <li key={i} className="ac-check-item">
-              <span className="ac-check-icon">✓</span>
+              <span className="ac-check-icon" style={{ color: catColor }}>✓</span>
               <span>{c}</span>
             </li>
           ))}
@@ -262,7 +343,6 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
 
         <div className="ac-divider" />
 
-        {/* Footer */}
         <div className="ac-footer">
           {a.pdfUrl ? (
             <a href={a.pdfUrl} target="_blank" rel="noopener noreferrer" className="ac-btn">
@@ -312,14 +392,12 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
         @keyframes fadeUp    { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
         @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(1.7)} }
 
-        /* Grid */
         .ac-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
           gap: 22px;
         }
 
-        /* Card */
         .ac-card {
           background: #fff;
           border: 1px solid #e2e8f0;
@@ -336,7 +414,6 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
           border-color: rgba(201,162,39,0.4);
         }
 
-        /* Image header */
         .ac-img-wrap {
           position: relative; height: 186px;
           overflow: hidden; background: #0d1f38; flex-shrink: 0;
@@ -354,19 +431,31 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
             rgba(5,14,30,.82) 78%, rgba(5,14,30,.96) 100%);
         }
 
-        /* Badges */
         .ac-badge {
           position: absolute; top: 12px; right: 12px;
           display: flex; align-items: center; gap: 5px;
           padding: 4px 11px;
           font-size: 9px; letter-spacing: 2px;
           text-transform: uppercase; font-weight: 600;
+          font-family: 'DM Mono', monospace;
         }
-        .ac-live {
+
+        /* Kategorie-Badge oben links */
+        .ac-cat-badge {
           position: absolute; top: 12px; left: 12px;
+          font-size: 7px; letter-spacing: 2.5px;
+          text-transform: uppercase;
+          padding: 3px 8px;
+          border: 1px solid;
+          font-family: 'DM Mono', monospace;
+        }
+
+        .ac-live {
+          position: absolute; top: 36px; left: 12px;
           display: flex; align-items: center; gap: 6px;
           font-size: 7px; letter-spacing: 3px;
           color: rgba(255,255,255,.55); text-transform: uppercase;
+          font-family: 'DM Mono', monospace;
         }
         .ac-live-dot {
           width:5px; height:5px; border-radius:50%;
@@ -374,18 +463,16 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
           animation: livePulse 2s ease infinite;
         }
 
-        /* Company text on image */
         .ac-co-wrap { position:absolute; bottom:0; left:0; right:0; padding:14px 18px 13px; }
-        .ac-ticker  { font-size:8px; letter-spacing:4px; color:#c9a227; text-transform:uppercase; margin-bottom:5px; opacity:.9; }
+        .ac-ticker  { font-size:8px; letter-spacing:4px; color:#c9a227; text-transform:uppercase; margin-bottom:5px; opacity:.9; font-family:'DM Mono',monospace; }
         .ac-co {
           font-family:'Cormorant Garamond',serif;
           font-size:20px; font-weight:600; color:#fff;
           line-height:1.2; margin:0 0 4px;
           text-shadow:0 2px 10px rgba(0,0,0,.45);
         }
-        .ac-sector-lbl { font-size:7px; letter-spacing:2px; color:rgba(255,255,255,.4); text-transform:uppercase; }
+        .ac-sector-lbl { font-size:7px; letter-spacing:2px; color:rgba(255,255,255,.4); text-transform:uppercase; font-family:'DM Mono',monospace; }
 
-        /* Price bar */
         .ac-prices {
           display: grid; grid-template-columns: repeat(3,1fr);
           background:#f8fafc;
@@ -398,6 +485,7 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
           font-size:8px; letter-spacing:2px; color:#94a3b8;
           text-transform:uppercase;
           display:flex; align-items:center; gap:5px; margin-bottom:5px;
+          font-family:'DM Mono',monospace;
         }
         .ac-price-dot  { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
         .ac-loading    { font-size:8px; color:#94a3b8; }
@@ -409,22 +497,18 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
         .ac-price-val.up   { color:#15803d; }
         .ac-price-val.dn   { color:#b91c1c; }
 
-        /* Body */
         .ac-body { padding:16px 20px 18px; display:flex; flex-direction:column; flex:1; }
 
-        /* Checks */
         .ac-checks { list-style:none; margin:0 0 14px; padding:0; display:flex; flex-direction:column; gap:9px; flex:1; }
         .ac-check-item {
           display:flex; align-items:flex-start; gap:10px;
           font-size:10px; color:#334155; line-height:1.5;
           font-family:'DM Mono',monospace;
         }
-        .ac-check-icon { color:#c9a227; font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px; }
+        .ac-check-icon { font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px; }
 
-        /* Divider */
         .ac-divider { height:1px; background:#f1f5f9; margin-bottom:14px; }
 
-        /* Footer */
         .ac-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
         .ac-btn {
           display:inline-flex; align-items:center; gap:8px;

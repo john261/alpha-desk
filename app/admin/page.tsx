@@ -13,29 +13,87 @@ const BADGE: Record<Rating, { color: string; bg: string }> = {
   WATCH: { color: '#c9a84c', bg: 'rgba(201,168,76,0.12)' },
 }
 
-// ── NEU: Kategorie-Optionen ───────────────────────────────────────────────────
+// ── Nur 2 Kategorien ─────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { value: 'equity', label: 'Equity Research',     icon: '◈', desc: 'Einzelaktien · Fundamentalanalyse' },
-  { value: 'macro',  label: 'Macro & Policy',       icon: '◉', desc: 'Zentralbanken · Geopolitik · Inflation' },
-  { value: 'sector', label: 'Sector Report',        icon: '◆', desc: 'Branchenanalysen · Marktstruktur' },
+  {
+    value: 'equity',
+    label: 'Equity Research',
+    icon: '◈',
+    desc: 'Einzelaktien · Fundamentalanalyse',
+  },
+  {
+    value: 'geo',
+    label: 'Geopolitik & Märkte',
+    icon: '◉',
+    desc: 'Weltpolitik · Makro · Marktauswirkungen',
+  },
 ]
 const CATEGORY_COLORS: Record<string, string> = {
   equity: '#c9a227',
-  macro:  '#38bdf8',
-  sector: '#a78bfa',
+  geo:    '#38bdf8',
 }
+
+// ── Sektoren mit exakten Werten (für Dropdown + Bild-Mapping) ───────────────
+export const SECTORS = [
+  { value: 'Technologie',                  label: 'Technologie' },
+  { value: 'Software & IT',                label: 'Software & IT' },
+  { value: 'Halbleiter',                   label: 'Halbleiter' },
+  { value: 'Automobil & OEM',              label: 'Automobil & OEM' },
+  { value: 'Autovermietung & Mobilität',   label: 'Autovermietung & Mobilität' },
+  { value: 'Versicherung',                 label: 'Versicherung' },
+  { value: 'Banken & Finanzen',            label: 'Banken & Finanzen' },
+  { value: 'Immobilien',                   label: 'Immobilien' },
+  { value: 'Energie & Utilities',          label: 'Energie & Utilities' },
+  { value: 'Erneuerbare Energien',         label: 'Erneuerbare Energien' },
+  { value: 'Pharma & Biotech',             label: 'Pharma & Biotech' },
+  { value: 'Medizintechnik',               label: 'Medizintechnik' },
+  { value: 'Konsumgüter & Handel',         label: 'Konsumgüter & Handel' },
+  { value: 'Lebensmittel & Getränke',      label: 'Lebensmittel & Getränke' },
+  { value: 'Industrie & Maschinenbau',     label: 'Industrie & Maschinenbau' },
+  { value: 'Chemie & Werkstoffe',          label: 'Chemie & Werkstoffe' },
+  { value: 'Telekommunikation',            label: 'Telekommunikation' },
+  { value: 'Medien & Entertainment',       label: 'Medien & Entertainment' },
+  { value: 'Transport & Logistik',         label: 'Transport & Logistik' },
+  { value: 'Luft- & Raumfahrt',            label: 'Luft- & Raumfahrt' },
+  { value: 'Rüstung & Defense',            label: 'Rüstung & Defense' },
+  { value: 'Rohstoffe & Bergbau',          label: 'Rohstoffe & Bergbau' },
+  { value: 'E-Commerce & Plattformen',     label: 'E-Commerce & Plattformen' },
+  { value: 'Luxury & Fashion',             label: 'Luxury & Fashion' },
+  { value: 'Gaming & Esports',             label: 'Gaming & Esports' },
+  { value: 'Künstliche Intelligenz',       label: 'Künstliche Intelligenz' },
+  { value: 'Krypto & Blockchain',          label: 'Krypto & Blockchain' },
+  { value: 'Agrar & Forst',               label: 'Agrar & Forst' },
+  { value: 'Sonstiges',                    label: 'Sonstiges' },
+]
+
+// Geo-Topics (für Kategorie "geo" statt Sektoren)
+const GEO_TOPICS = [
+  'USA & Fed-Politik',
+  'Europa & EZB',
+  'China & Asien',
+  'Naher Osten',
+  'Russland & Ukraine',
+  'NATO & Verteidigung',
+  'Handelskrieg & Zölle',
+  'Rohstoff-Geopolitik',
+  'Währungskrisen',
+  'Sanktionen & Embargos',
+  'Globale Lieferketten',
+  'Energiesicherheit',
+  'Sonstiges',
+]
 
 type FormData = {
   ticker: string; title: string; description: string
   rating: Rating; sector: string; analyst: string
   current_price: string; price_target: string
-  category: string   // ← NEU
+  category: string
 }
 
 const EMPTY_FORM: FormData = {
   ticker: '', title: '', description: '', rating: 'BUY',
-  sector: '', analyst: '', current_price: '', price_target: '',
-  category: 'equity',   // ← NEU
+  sector: SECTORS[0].value, analyst: '', current_price: '', price_target: '',
+  category: 'equity',
 }
 
 export default function AdminPage() {
@@ -52,7 +110,6 @@ export default function AdminPage() {
   const [tab, setTab]             = useState<'upload' | 'manage'>('upload')
   const [userEmail, setUserEmail] = useState('')
 
-  // Edit state
   const [editId, setEditId]                   = useState<string | null>(null)
   const [existingPdfPath, setExistingPdfPath] = useState<string | null>(null)
   const [existingPdfName, setExistingPdfName] = useState<string | null>(null)
@@ -91,16 +148,17 @@ export default function AdminPage() {
     setExistingPdfName(a.pdf_name ?? null)
     setReplacePdf(false)
     setPdfFile(null)
+    const cat = (a as any).category ?? 'equity'
     setForm({
       ticker:        a.ticker,
       title:         a.title,
       description:   a.description ?? '',
       rating:        a.rating,
-      sector:        a.sector ?? '',
+      sector:        a.sector ?? SECTORS[0].value,
       analyst:       a.analyst ?? '',
       current_price: a.current_price != null ? String(a.current_price) : '',
       price_target:  a.price_target  != null ? String(a.price_target)  : '',
-      category:      (a as any).category ?? 'equity',   // ← NEU
+      category:      cat,
     })
     setTab('upload')
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -146,11 +204,11 @@ export default function AdminPage() {
       title:         form.title.trim(),
       description:   form.description.trim() || null,
       rating:        form.rating,
-      sector:        form.sector.trim() || null,
+      sector:        form.sector || null,
       analyst:       form.analyst.trim() || null,
       current_price: form.current_price ? parseFloat(form.current_price) : null,
       price_target:  form.price_target  ? parseFloat(form.price_target)  : null,
-      category:      form.category,   // ← NEU
+      category:      form.category,
       pdf_path,
       pdf_name,
       published:     publish,
@@ -160,14 +218,11 @@ export default function AdminPage() {
 
     if (editId) {
       ;({ error } = await (supabase as any)
-        .from('analyses')
-        .update(payload)
-        .eq('id', editId))
+        .from('analyses').update(payload).eq('id', editId))
     } else {
       const { data: { user } } = await supabase.auth.getUser()
       ;({ error } = await (supabase as any)
-        .from('analyses')
-        .insert({ ...payload, author_id: user?.id ?? null }))
+        .from('analyses').insert({ ...payload, author_id: user?.id ?? null }))
     }
 
     if (error) {
@@ -218,7 +273,7 @@ export default function AdminPage() {
       setForm(f => ({ ...f, [key]: e.target.value }))
   })
 
-  const inputStyle = {
+  const inputStyle: React.CSSProperties = {
     width: '100%', fontFamily: 'DM Mono, monospace', fontSize: 12,
     background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)',
     color: 'var(--text)', padding: '14px 16px', outline: 'none',
@@ -226,6 +281,7 @@ export default function AdminPage() {
 
   const activeCat = CATEGORIES.find(c => c.value === form.category) ?? CATEGORIES[0]
   const catColor  = CATEGORY_COLORS[form.category] ?? '#c9a227'
+  const isEquity  = form.category === 'equity'
 
   return (
     <>
@@ -238,6 +294,7 @@ export default function AdminPage() {
         .btn-edit:hover { border-color: var(--gold) !important; color: var(--gold) !important; }
         .cat-btn { transition: all .2s ease; }
         .cat-btn:hover { opacity: 1 !important; }
+        select option { background: #0d1220; }
       `}</style>
 
       <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', zIndex: 0 }} />
@@ -321,25 +378,25 @@ export default function AdminPage() {
                   border: '1px solid var(--gold)', background: 'rgba(201,168,76,0.06)',
                 }}>
                   <span style={{ fontSize: 10, letterSpacing: 3, color: 'var(--gold)', textTransform: 'uppercase' }}>
-                    ✎ EDITING EXISTING ANALYSIS — {form.ticker}
+                    ✎ EDITING — {form.ticker}
                   </span>
                   <button onClick={() => { cancelEdit(); setTab('manage') }} style={{
                     fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
                     background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)',
-                    padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase', transition: 'all 0.25s'
+                    padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase',
                   }}
                     onMouseEnter={e => { (e.target as any).style.borderColor = 'var(--red)'; (e.target as any).style.color = 'var(--red)' }}
                     onMouseLeave={e => { (e.target as any).style.borderColor = 'var(--border)'; (e.target as any).style.color = 'var(--text-dim)' }}
-                  >✕ CANCEL EDIT</button>
+                  >✕ CANCEL</button>
                 </div>
               )}
 
-              {/* ── KATEGORIE-AUSWAHL (NEU) ── */}
+              {/* ── KATEGORIE-AUSWAHL (2 Kategorien) ── */}
               <div style={{ marginBottom: 32 }}>
                 <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 12 }}>
                   Report Kategorie
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   {CATEGORIES.map(cat => {
                     const active = form.category === cat.value
                     const color  = CATEGORY_COLORS[cat.value]
@@ -347,17 +404,21 @@ export default function AdminPage() {
                       <button
                         key={cat.value}
                         className="cat-btn"
-                        onClick={() => setForm(f => ({ ...f, category: cat.value }))}
+                        onClick={() => setForm(f => ({
+                          ...f,
+                          category: cat.value,
+                          sector: cat.value === 'equity' ? SECTORS[0].value : GEO_TOPICS[0],
+                        }))}
                         style={{
                           fontFamily: 'DM Mono, monospace',
-                          padding: '14px 16px', border: `1px solid ${active ? color : 'var(--border)'}`,
+                          padding: '18px 20px', border: `1px solid ${active ? color : 'var(--border)'}`,
                           background: active ? `${color}12` : 'rgba(255,255,255,0.02)',
                           cursor: 'pointer', textAlign: 'left', transition: 'all .2s',
                           opacity: active ? 1 : 0.55,
                         }}
                       >
-                        <div style={{ fontSize: 16, marginBottom: 6, color }}>{cat.icon}</div>
-                        <div style={{ fontSize: 10, letterSpacing: 2, color: active ? color : 'var(--text)', textTransform: 'uppercase', marginBottom: 3 }}>
+                        <div style={{ fontSize: 18, marginBottom: 8, color }}>{cat.icon}</div>
+                        <div style={{ fontSize: 11, letterSpacing: 2, color: active ? color : 'var(--text)', textTransform: 'uppercase', marginBottom: 4 }}>
                           {cat.label}
                         </div>
                         <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--text-dim)' }}>
@@ -387,8 +448,7 @@ export default function AdminPage() {
                   <button onClick={() => setReplacePdf(true)} style={{
                     fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
                     background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)',
-                    padding: '10px 18px', cursor: 'pointer', textTransform: 'uppercase', transition: 'all 0.25s',
-                    whiteSpace: 'nowrap',
+                    padding: '10px 18px', cursor: 'pointer', textTransform: 'uppercase',
                   }}
                     onMouseEnter={e => { (e.target as any).style.borderColor = 'var(--gold)'; (e.target as any).style.color = 'var(--gold)' }}
                     onMouseLeave={e => { (e.target as any).style.borderColor = 'var(--border)'; (e.target as any).style.color = 'var(--text-dim)' }}
@@ -435,68 +495,68 @@ export default function AdminPage() {
 
               {/* Form fields */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
-                {[
-                  { label: 'Ticker Symbol *', key: 'ticker' as const, placeholder: 'AAPL' },
-                  { label: 'Rating', key: 'rating' as const, placeholder: '', isSelect: true },
-                ].map(({ label, key, placeholder, isSelect }) => (
-                  <div key={key}>
-                    <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>{label}</label>
-                    {isSelect ? (
-                      <select {...F(key)} className="focus-gold" style={{ ...inputStyle, cursor: 'pointer' }}>
-                        {RATINGS.map(r => <option key={r} value={r} style={{ background: 'var(--bg2)' }}>{r}</option>)}
-                      </select>
-                    ) : (
-                      <input {...F(key)} className="focus-gold" placeholder={placeholder} style={inputStyle}
-                        {...(key === 'ticker' ? { onChange: e => setForm(f => ({ ...f, ticker: e.target.value.toUpperCase() })) } : {})}
-                      />
-                    )}
-                  </div>
-                ))}
 
-                <div style={{ gridColumn: '1/-1' }}>
-                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Report Title *</label>
-                  <input {...F('title')} className="focus-gold" placeholder="e.g. AAPL — Structural Rerating Incoming" style={inputStyle} />
-                </div>
-
-                <div style={{ gridColumn: '1/-1' }}>
+                {/* Ticker + Rating */}
+                <div>
                   <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>
-                    Short Description
-                    {/* Hinweis für Macro: Komma-getrennte Topics für Tags */}
-                    {form.category !== 'equity' && (
-                      <span style={{ marginLeft: 10, color: catColor, opacity: .7 }}>
-                        — für Topic-Tags: Komma-getrennt, z.B. "EZB, Zinsen, Inflation"
-                      </span>
-                    )}
+                    {isEquity ? 'Ticker Symbol *' : 'Kürzel / ID *'}
                   </label>
-                  <textarea {...F('description')} className="focus-gold" placeholder={
-                    form.category === 'equity'
-                      ? 'Brief overview of the investment thesis...'
-                      : 'z.B. EZB Zinsentscheidung, Inflationsausblick, Auswirkungen auf Märkte...'
-                  } rows={3}
-                    style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.7 }} />
+                  <input
+                    value={form.ticker}
+                    onChange={e => setForm(f => ({ ...f, ticker: e.target.value.toUpperCase() }))}
+                    className="focus-gold"
+                    placeholder={isEquity ? 'AAPL' : 'GEO-001'}
+                    style={inputStyle}
+                  />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>
-                    Sector / Topic
-                    {form.category !== 'equity' && (
-                      <span style={{ marginLeft: 8, color: catColor, opacity: .7, fontSize: 8 }}>
-                        → wird als Topic-Tags angezeigt (kommagetrennt)
-                      </span>
-                    )}
-                  </label>
-                  <input {...F('sector')} className="focus-gold"
-                    placeholder={form.category === 'equity' ? 'Technology' : 'EZB, Zinsen, Inflation'}
+                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Rating</label>
+                  <select {...F('rating')} className="focus-gold" style={{ ...inputStyle, cursor: 'pointer' }}>
+                    {RATINGS.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                </div>
+
+                {/* Title */}
+                <div style={{ gridColumn: '1/-1' }}>
+                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Report Title *</label>
+                  <input {...F('title')} className="focus-gold"
+                    placeholder={isEquity ? 'e.g. AAPL — Structural Rerating Incoming' : 'e.g. Zollkrieg 2025 — Auswirkungen auf europäische Märkte'}
                     style={inputStyle} />
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Analyst</label>
-                  <input {...F('analyst')} className="focus-gold" placeholder="J. Smith" style={inputStyle} />
+                {/* Description */}
+                <div style={{ gridColumn: '1/-1' }}>
+                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Short Description</label>
+                  <textarea {...F('description')} className="focus-gold"
+                    placeholder={isEquity
+                      ? 'Brief overview of the investment thesis...'
+                      : 'Kurze Zusammenfassung der geopolitischen Situation und Marktrelevanz...'}
+                    rows={3}
+                    style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.7 }} />
                 </div>
 
-                {/* Preis-Felder nur für Equity sichtbar */}
-                {form.category === 'equity' && (
+                {/* Sektor Dropdown (Equity) oder Geo-Topic Dropdown */}
+                <div>
+                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>
+                    {isEquity ? 'Sektor' : 'Themenbereich'}
+                  </label>
+                  <select {...F('sector')} className="focus-gold" style={{ ...inputStyle, cursor: 'pointer' }}>
+                    {isEquity
+                      ? SECTORS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)
+                      : GEO_TOPICS.map(t => <option key={t} value={t}>{t}</option>)
+                    }
+                  </select>
+                </div>
+
+                {/* Analyst */}
+                <div>
+                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Analyst</label>
+                  <input {...F('analyst')} className="focus-gold" placeholder="G. Stephan" style={inputStyle} />
+                </div>
+
+                {/* Preis-Felder nur für Equity */}
+                {isEquity && (
                   <>
                     <div>
                       <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Current Price</label>
@@ -510,12 +570,12 @@ export default function AdminPage() {
                 )}
               </div>
 
+              {/* Save buttons */}
               <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
                 <button onClick={() => handleSave(false)} disabled={saving} style={{
                   fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: 3,
                   background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)',
-                  padding: '16px 32px', cursor: saving ? 'not-allowed' : 'pointer',
-                  textTransform: 'uppercase', transition: 'all 0.25s',
+                  padding: '16px 32px', cursor: saving ? 'not-allowed' : 'pointer', textTransform: 'uppercase',
                 }}>
                   {editId ? 'SAVE AS DRAFT' : 'SAVE DRAFT'}
                 </button>
@@ -526,9 +586,7 @@ export default function AdminPage() {
                   padding: '16px 40px', cursor: saving ? 'not-allowed' : 'pointer',
                   textTransform: 'uppercase', transition: 'all 0.3s',
                 }}>
-                  {saving
-                    ? 'SAVING...'
-                    : editId ? 'UPDATE & PUBLISH →' : 'PUBLISH NOW →'}
+                  {saving ? 'SAVING...' : editId ? 'UPDATE & PUBLISH →' : 'PUBLISH NOW →'}
                 </button>
               </div>
             </div>
@@ -562,14 +620,14 @@ export default function AdminPage() {
                             {a.title}
                           </div>
                           <div style={{ fontSize: 10, color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                            {new Date(a.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            {new Date(a.created_at).toLocaleDateString('de-DE', { year: 'numeric', month: 'short', day: 'numeric' })}
                             {' · '}
                             <span style={{ color: b.color }}>{a.rating}</span>
                             {' · '}
-                            {/* Kategorie-Badge */}
-                            <span style={{ color: cc, fontSize: 9, letterSpacing: 1, padding: '1px 6px', border: `1px solid ${cc}44`, borderRadius: 1 }}>
+                            <span style={{ color: cc, fontSize: 9, letterSpacing: 1, padding: '1px 6px', border: `1px solid ${cc}44` }}>
                               {CATEGORIES.find(c => c.value === cat)?.label ?? cat}
                             </span>
+                            {a.sector && <span style={{ color: 'var(--text-dim)', fontSize: 9 }}>· {a.sector}</span>}
                             {a.pdf_path ? ' · PDF ✓' : ' · No PDF'}
                           </div>
                         </div>
@@ -578,7 +636,7 @@ export default function AdminPage() {
                           fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
                           padding: '6px 14px', border: '1px solid var(--border)',
                           color: 'var(--text-dim)', background: 'transparent',
-                          cursor: 'pointer', textTransform: 'uppercase', transition: 'all 0.25s', whiteSpace: 'nowrap',
+                          cursor: 'pointer', textTransform: 'uppercase', whiteSpace: 'nowrap',
                         }}>EDIT</button>
 
                         <button onClick={() => togglePublish(a)} style={{
@@ -586,7 +644,7 @@ export default function AdminPage() {
                           padding: '6px 14px', border: `1px solid ${a.published ? 'var(--green)' : 'var(--border)'}`,
                           color: a.published ? 'var(--green)' : 'var(--text-dim)',
                           background: a.published ? 'rgba(78,201,148,0.08)' : 'transparent',
-                          cursor: 'pointer', textTransform: 'uppercase', transition: 'all 0.25s', whiteSpace: 'nowrap',
+                          cursor: 'pointer', textTransform: 'uppercase', whiteSpace: 'nowrap',
                         }}>
                           {a.published ? 'LIVE' : 'DRAFT'}
                         </button>
@@ -594,7 +652,7 @@ export default function AdminPage() {
                         <button onClick={() => deleteAnalysis(a)} style={{
                           fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 1,
                           background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)',
-                          padding: '6px 12px', cursor: 'pointer', transition: 'all 0.25s',
+                          padding: '6px 12px', cursor: 'pointer',
                         }}
                           onMouseEnter={e => { (e.target as any).style.borderColor = 'var(--red)'; (e.target as any).style.color = 'var(--red)' }}
                           onMouseLeave={e => { (e.target as any).style.borderColor = 'var(--border)'; (e.target as any).style.color = 'var(--text-dim)' }}
