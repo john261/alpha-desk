@@ -13,15 +13,29 @@ const BADGE: Record<Rating, { color: string; bg: string }> = {
   WATCH: { color: '#c9a84c', bg: 'rgba(201,168,76,0.12)' },
 }
 
+// ── NEU: Kategorie-Optionen ───────────────────────────────────────────────────
+const CATEGORIES = [
+  { value: 'equity', label: 'Equity Research',     icon: '◈', desc: 'Einzelaktien · Fundamentalanalyse' },
+  { value: 'macro',  label: 'Macro & Policy',       icon: '◉', desc: 'Zentralbanken · Geopolitik · Inflation' },
+  { value: 'sector', label: 'Sector Report',        icon: '◆', desc: 'Branchenanalysen · Marktstruktur' },
+]
+const CATEGORY_COLORS: Record<string, string> = {
+  equity: '#c9a227',
+  macro:  '#38bdf8',
+  sector: '#a78bfa',
+}
+
 type FormData = {
   ticker: string; title: string; description: string
   rating: Rating; sector: string; analyst: string
   current_price: string; price_target: string
+  category: string   // ← NEU
 }
 
 const EMPTY_FORM: FormData = {
   ticker: '', title: '', description: '', rating: 'BUY',
-  sector: '', analyst: '', current_price: '', price_target: ''
+  sector: '', analyst: '', current_price: '', price_target: '',
+  category: 'equity',   // ← NEU
 }
 
 export default function AdminPage() {
@@ -39,10 +53,10 @@ export default function AdminPage() {
   const [userEmail, setUserEmail] = useState('')
 
   // Edit state
-  const [editId, setEditId]             = useState<string | null>(null)
+  const [editId, setEditId]                   = useState<string | null>(null)
   const [existingPdfPath, setExistingPdfPath] = useState<string | null>(null)
   const [existingPdfName, setExistingPdfName] = useState<string | null>(null)
-  const [replacePdf, setReplacePdf]     = useState(false)
+  const [replacePdf, setReplacePdf]           = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -71,7 +85,6 @@ export default function AdminPage() {
     setPdfFile(file)
   }, [])
 
-  // ── NEW: populate form and switch to upload tab for editing ──
   function startEdit(a: Analysis) {
     setEditId(a.id)
     setExistingPdfPath(a.pdf_path ?? null)
@@ -87,6 +100,7 @@ export default function AdminPage() {
       analyst:       a.analyst ?? '',
       current_price: a.current_price != null ? String(a.current_price) : '',
       price_target:  a.price_target  != null ? String(a.price_target)  : '',
+      category:      (a as any).category ?? 'equity',   // ← NEU
     })
     setTab('upload')
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -101,7 +115,6 @@ export default function AdminPage() {
     setForm(EMPTY_FORM)
   }
 
-  // ── SAVE: handles both INSERT and UPDATE ──
   async function handleSave(publish: boolean) {
     if (!form.ticker.trim() || !form.title.trim()) {
       showToast('TICKER & TITLE ARE REQUIRED', false); return
@@ -111,9 +124,7 @@ export default function AdminPage() {
     let pdf_path = existingPdfPath
     let pdf_name = existingPdfName
 
-    // Upload new PDF if provided (new entry OR replace selected while editing)
     if (pdfFile && (!editId || replacePdf)) {
-      // Delete old PDF when replacing
       if (editId && existingPdfPath) {
         await supabase.storage.from('analyses-pdfs').remove([existingPdfPath])
       }
@@ -139,6 +150,7 @@ export default function AdminPage() {
       analyst:       form.analyst.trim() || null,
       current_price: form.current_price ? parseFloat(form.current_price) : null,
       price_target:  form.price_target  ? parseFloat(form.price_target)  : null,
+      category:      form.category,   // ← NEU
       pdf_path,
       pdf_name,
       published:     publish,
@@ -147,13 +159,11 @@ export default function AdminPage() {
     let error: any = null
 
     if (editId) {
-      // ── UPDATE existing record ──
       ;({ error } = await (supabase as any)
         .from('analyses')
         .update(payload)
         .eq('id', editId))
     } else {
-      // ── INSERT new record ──
       const { data: { user } } = await supabase.auth.getUser()
       ;({ error } = await (supabase as any)
         .from('analyses')
@@ -214,6 +224,9 @@ export default function AdminPage() {
     color: 'var(--text)', padding: '14px 16px', outline: 'none',
   }
 
+  const activeCat = CATEGORIES.find(c => c.value === form.category) ?? CATEGORIES[0]
+  const catColor  = CATEGORY_COLORS[form.category] ?? '#c9a227'
+
   return (
     <>
       <style>{`
@@ -223,6 +236,8 @@ export default function AdminPage() {
         .row-hover:hover { background: rgba(255,255,255,0.03) !important; }
         .focus-gold:focus { border-color: var(--gold) !important; }
         .btn-edit:hover { border-color: var(--gold) !important; color: var(--gold) !important; }
+        .cat-btn { transition: all .2s ease; }
+        .cat-btn:hover { opacity: 1 !important; }
       `}</style>
 
       <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', zIndex: 0 }} />
@@ -319,8 +334,42 @@ export default function AdminPage() {
                 </div>
               )}
 
+              {/* ── KATEGORIE-AUSWAHL (NEU) ── */}
+              <div style={{ marginBottom: 32 }}>
+                <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 12 }}>
+                  Report Kategorie
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+                  {CATEGORIES.map(cat => {
+                    const active = form.category === cat.value
+                    const color  = CATEGORY_COLORS[cat.value]
+                    return (
+                      <button
+                        key={cat.value}
+                        className="cat-btn"
+                        onClick={() => setForm(f => ({ ...f, category: cat.value }))}
+                        style={{
+                          fontFamily: 'DM Mono, monospace',
+                          padding: '14px 16px', border: `1px solid ${active ? color : 'var(--border)'}`,
+                          background: active ? `${color}12` : 'rgba(255,255,255,0.02)',
+                          cursor: 'pointer', textAlign: 'left', transition: 'all .2s',
+                          opacity: active ? 1 : 0.55,
+                        }}
+                      >
+                        <div style={{ fontSize: 16, marginBottom: 6, color }}>{cat.icon}</div>
+                        <div style={{ fontSize: 10, letterSpacing: 2, color: active ? color : 'var(--text)', textTransform: 'uppercase', marginBottom: 3 }}>
+                          {cat.label}
+                        </div>
+                        <div style={{ fontSize: 8, letterSpacing: 1, color: 'var(--text-dim)' }}>
+                          {cat.desc}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
               {/* PDF drop zone */}
-              {/* When editing: show existing PDF status + optional replace toggle */}
               {editId && existingPdfName && !replacePdf ? (
                 <div style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -352,15 +401,17 @@ export default function AdminPage() {
                   onDragLeave={() => setDrag(false)}
                   onDrop={e => { e.preventDefault(); setDrag(false); handleFile(e.dataTransfer.files[0]) }}
                   style={{
-                    border: `2px dashed ${drag ? 'var(--gold)' : 'var(--border)'}`,
-                    background: drag ? 'var(--gold-dim)' : 'rgba(255,255,255,0.02)',
+                    border: `2px dashed ${drag ? catColor : 'var(--border)'}`,
+                    background: drag ? `${catColor}10` : 'rgba(255,255,255,0.02)',
                     padding: '56px 40px', textAlign: 'center', cursor: 'pointer',
                     transition: 'all 0.3s', marginBottom: 40,
                   }}
                 >
-                  <div style={{ fontSize: 36, marginBottom: 14, color: 'var(--gold)', opacity: drag ? 1 : 0.7 }}>⬡</div>
+                  <div style={{ fontSize: 36, marginBottom: 14, color: catColor, opacity: drag ? 1 : 0.7 }}>
+                    {activeCat.icon}
+                  </div>
                   <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 300, marginBottom: 8 }}>
-                    {pdfFile ? pdfFile.name : (editId && replacePdf ? 'Drop new PDF here or click to browse' : 'Drop PDF here or click to browse')}
+                    {pdfFile ? pdfFile.name : 'Drop PDF here or click to browse'}
                   </div>
                   <div style={{ fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
                     {pdfFile
@@ -408,23 +459,55 @@ export default function AdminPage() {
                 </div>
 
                 <div style={{ gridColumn: '1/-1' }}>
-                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Short Description</label>
-                  <textarea {...F('description')} className="focus-gold" placeholder="Brief overview of the investment thesis..." rows={3}
+                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>
+                    Short Description
+                    {/* Hinweis für Macro: Komma-getrennte Topics für Tags */}
+                    {form.category !== 'equity' && (
+                      <span style={{ marginLeft: 10, color: catColor, opacity: .7 }}>
+                        — für Topic-Tags: Komma-getrennt, z.B. "EZB, Zinsen, Inflation"
+                      </span>
+                    )}
+                  </label>
+                  <textarea {...F('description')} className="focus-gold" placeholder={
+                    form.category === 'equity'
+                      ? 'Brief overview of the investment thesis...'
+                      : 'z.B. EZB Zinsentscheidung, Inflationsausblick, Auswirkungen auf Märkte...'
+                  } rows={3}
                     style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.7 }} />
                 </div>
 
-                {[
-                  { label: 'Sector',        key: 'sector' as const,        placeholder: 'Technology' },
-                  { label: 'Analyst',       key: 'analyst' as const,       placeholder: 'J. Smith' },
-                  { label: 'Current Price', key: 'current_price' as const, placeholder: '189.42' },
-                  { label: 'Price Target',  key: 'price_target' as const,  placeholder: '220.00' },
-                ].map(({ label, key, placeholder }) => (
-                  <div key={key}>
-                    <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>{label}</label>
-                    <input {...F(key)} className="focus-gold" placeholder={placeholder}
-                      type={key.includes('price') ? 'number' : 'text'} step="0.01" style={inputStyle} />
-                  </div>
-                ))}
+                <div>
+                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>
+                    Sector / Topic
+                    {form.category !== 'equity' && (
+                      <span style={{ marginLeft: 8, color: catColor, opacity: .7, fontSize: 8 }}>
+                        → wird als Topic-Tags angezeigt (kommagetrennt)
+                      </span>
+                    )}
+                  </label>
+                  <input {...F('sector')} className="focus-gold"
+                    placeholder={form.category === 'equity' ? 'Technology' : 'EZB, Zinsen, Inflation'}
+                    style={inputStyle} />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Analyst</label>
+                  <input {...F('analyst')} className="focus-gold" placeholder="J. Smith" style={inputStyle} />
+                </div>
+
+                {/* Preis-Felder nur für Equity sichtbar */}
+                {form.category === 'equity' && (
+                  <>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Current Price</label>
+                      <input {...F('current_price')} className="focus-gold" placeholder="189.42" type="number" step="0.01" style={inputStyle} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>Price Target</label>
+                      <input {...F('price_target')} className="focus-gold" placeholder="220.00" type="number" step="0.01" style={inputStyle} />
+                    </div>
+                  </>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
@@ -438,7 +521,7 @@ export default function AdminPage() {
                 </button>
                 <button onClick={() => handleSave(true)} disabled={saving} style={{
                   flex: 1, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: 3,
-                  background: saving ? 'rgba(201,168,76,0.4)' : 'var(--gold)',
+                  background: saving ? `${catColor}66` : catColor,
                   border: 'none', color: 'var(--bg)',
                   padding: '16px 40px', cursor: saving ? 'not-allowed' : 'pointer',
                   textTransform: 'uppercase', transition: 'all 0.3s',
@@ -462,7 +545,9 @@ export default function AdminPage() {
               ) : (
                 <div style={{ border: '1px solid var(--border)' }}>
                   {analyses.map((a, i) => {
-                    const b = BADGE[a.rating] || BADGE.WATCH
+                    const b   = BADGE[a.rating] || BADGE.WATCH
+                    const cat = (a as any).category ?? 'equity'
+                    const cc  = CATEGORY_COLORS[cat] ?? '#c9a227'
                     return (
                       <div key={a.id} className="row-hover" style={{
                         display: 'flex', alignItems: 'center', gap: 20, padding: '20px 28px',
@@ -476,26 +561,25 @@ export default function AdminPage() {
                           <div style={{ fontSize: 13, color: 'var(--text)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {a.title}
                           </div>
-                          <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>
+                          <div style={{ fontSize: 10, color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                             {new Date(a.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                             {' · '}
                             <span style={{ color: b.color }}>{a.rating}</span>
+                            {' · '}
+                            {/* Kategorie-Badge */}
+                            <span style={{ color: cc, fontSize: 9, letterSpacing: 1, padding: '1px 6px', border: `1px solid ${cc}44`, borderRadius: 1 }}>
+                              {CATEGORIES.find(c => c.value === cat)?.label ?? cat}
+                            </span>
                             {a.pdf_path ? ' · PDF ✓' : ' · No PDF'}
                           </div>
                         </div>
 
-                        {/* ── EDIT button (NEW) ── */}
-                        <button
-                          className="btn-edit"
-                          onClick={() => startEdit(a)}
-                          style={{
-                            fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
-                            padding: '6px 14px', border: '1px solid var(--border)',
-                            color: 'var(--text-dim)', background: 'transparent',
-                            cursor: 'pointer', textTransform: 'uppercase', transition: 'all 0.25s', whiteSpace: 'nowrap',
-                          }}>
-                          EDIT
-                        </button>
+                        <button className="btn-edit" onClick={() => startEdit(a)} style={{
+                          fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
+                          padding: '6px 14px', border: '1px solid var(--border)',
+                          color: 'var(--text-dim)', background: 'transparent',
+                          cursor: 'pointer', textTransform: 'uppercase', transition: 'all 0.25s', whiteSpace: 'nowrap',
+                        }}>EDIT</button>
 
                         <button onClick={() => togglePublish(a)} style={{
                           fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
