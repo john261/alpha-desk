@@ -16,10 +16,12 @@ const BADGE: Record<Rating, { color: string; bg: string }> = {
 const CATEGORIES = [
   { value: 'equity', label: 'Equity Research',    icon: '◈', desc: 'Einzelaktien · Fundamentalanalyse' },
   { value: 'geo',    label: 'Geopolitik & Märkte', icon: '◉', desc: 'Weltpolitik · Makro · Marktauswirkungen' },
+  { value: 'crypto', label: 'Digital Assets',      icon: '⬡', desc: 'Krypto · Blockchain · Web3' },
 ]
 const CATEGORY_COLORS: Record<string, string> = {
   equity: '#c9a227',
   geo:    '#38bdf8',
+  crypto: '#f97316',
 }
 
 const SECTORS = [
@@ -61,6 +63,13 @@ const GEO_TOPICS = [
   'Globale Lieferketten', 'Energiesicherheit', 'Sonstiges',
 ]
 
+const CRYPTO_TOPICS = [
+  'Bitcoin (BTC)', 'Ethereum (ETH)', 'Layer 1 Protokolle', 'Layer 2 & Scaling',
+  'DeFi & DEX', 'NFT & Gaming', 'Stablecoins', 'Krypto-Regulierung',
+  'Institutional Adoption', 'Mining & Infrastruktur', 'Web3 & Metaverse',
+  'Altcoins & Small Caps', 'Sonstiges',
+]
+
 type FormData = {
   ticker: string; title: string; description: string
   rating: Rating; sector: string; analyst: string
@@ -80,12 +89,13 @@ function ManageList({ analyses, onEdit, onToggle, onDelete }: {
   onToggle: (a: Analysis) => void
   onDelete: (a: Analysis) => void
 }) {
-  const [filter, setFilter] = useState<'all' | 'equity' | 'geo'>('all')
+  const [filter, setFilter] = useState<'all' | 'equity' | 'geo' | 'crypto'>('all')
 
   const counts = {
     all:    analyses.length,
     equity: analyses.filter(a => ((a as any).category ?? 'equity') === 'equity').length,
     geo:    analyses.filter(a => ((a as any).category ?? 'equity') === 'geo').length,
+    crypto: analyses.filter(a => ((a as any).category ?? 'equity') === 'crypto').length,
   }
 
   const filtered = filter === 'all'
@@ -96,6 +106,7 @@ function ManageList({ analyses, onEdit, onToggle, onDelete }: {
     { key: 'all'    as const, label: 'ALLE',            color: 'var(--text-dim)' },
     { key: 'equity' as const, label: 'EQUITY RESEARCH', color: '#c9a227' },
     { key: 'geo'    as const, label: 'GEOPOLITIK',      color: '#38bdf8' },
+    { key: 'crypto' as const, label: 'DIGITAL ASSETS',  color: '#f97316' },
   ]
 
   return (
@@ -342,7 +353,7 @@ export default function AdminPage() {
     color: 'var(--text)', padding: '14px 16px', outline: 'none',
   }
 
-  const isEquity  = form.category === 'equity'
+  const isEquity  = form.category === 'equity' || form.category === 'crypto'
   const catColor  = CATEGORY_COLORS[form.category] ?? '#c9a227'
   const activeCat = CATEGORIES.find(c => c.value === form.category) ?? CATEGORIES[0]
 
@@ -425,13 +436,13 @@ export default function AdminPage() {
               {/* Kategorie Auswahl */}
               <div style={{ marginBottom: 32 }}>
                 <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 12 }}>Report Kategorie</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
                   {CATEGORIES.map(cat => {
                     const active = form.category === cat.value
                     const color  = CATEGORY_COLORS[cat.value]
                     return (
                       <button key={cat.value} className="cat-btn"
-                        onClick={() => setForm(f => ({ ...f, category: cat.value, sector: cat.value === 'equity' ? SECTORS[0].value : GEO_TOPICS[0] }))}
+                        onClick={() => setForm(f => ({ ...f, category: cat.value, sector: cat.value === 'equity' ? SECTORS[0].value : cat.value === 'crypto' ? CRYPTO_TOPICS[0] : GEO_TOPICS[0] }))}
                         style={{ fontFamily: 'DM Mono, monospace', padding: '18px 20px', border: `1px solid ${active ? color : 'var(--border)'}`, background: active ? `${color}12` : 'rgba(255,255,255,0.02)', cursor: 'pointer', textAlign: 'left', opacity: active ? 1 : 0.55 }}>
                         <div style={{ fontSize: 18, marginBottom: 8, color }}>{cat.icon}</div>
                         <div style={{ fontSize: 11, letterSpacing: 2, color: active ? color : 'var(--text)', textTransform: 'uppercase', marginBottom: 4 }}>{cat.label}</div>
@@ -508,8 +519,10 @@ export default function AdminPage() {
                 <div>
                   <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>{isEquity ? 'Sektor' : 'Themenbereich'}</label>
                   <select {...F('sector')} className="focus-gold" style={{ ...inputStyle, cursor: 'pointer' }}>
-                    {isEquity
+                    {form.category === 'equity'
                       ? SECTORS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)
+                      : form.category === 'crypto'
+                      ? CRYPTO_TOPICS.map(t => <option key={t} value={t}>{t}</option>)
                       : GEO_TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>

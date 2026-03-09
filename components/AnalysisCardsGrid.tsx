@@ -245,6 +245,10 @@ function getCardImage(a: Analysis): string {
     return GEO_IMAGE_MAP[sector] ?? DEFAULT_IMAGE
   }
 
+  if (category === 'crypto') {
+    return CRYPTO_IMAGE_MAP[sector] ?? 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=700&q=80&fit=crop'
+  }
+
   // 1. Exaktes Matching auf Dropdown-Wert (neue Analysen)
   if (SECTOR_IMAGE_MAP[sector]) return SECTOR_IMAGE_MAP[sector]
 
@@ -271,10 +275,42 @@ const RATING_CFG = {
 const CAT_COLORS: Record<string, string> = {
   equity: '#c9a227',
   geo:    '#38bdf8',
+  crypto: '#f97316',
 }
 const CAT_LABELS: Record<string, string> = {
   equity: 'Equity',
   geo:    'Geopolitik',
+  crypto: 'Digital Assets',
+}
+
+// ─── Crypto-Kategorie Bilder (nach Themenbereich) ─────────────────────────────
+const CRYPTO_IMAGE_MAP: Record<string, string> = {
+  'Bitcoin (BTC)':
+    'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=700&q=80&fit=crop',
+  'Ethereum (ETH)':
+    'https://images.unsplash.com/photo-1622630998477-20aa696ecb05?w=700&q=80&fit=crop',
+  'Layer 1 Protokolle':
+    'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=700&q=80&fit=crop',
+  'Layer 2 & Scaling':
+    'https://images.unsplash.com/photo-1642790551116-18e150f248e3?w=700&q=80&fit=crop',
+  'DeFi & DEX':
+    'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop',
+  'NFT & Gaming':
+    'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=700&q=80&fit=crop',
+  'Stablecoins':
+    'https://images.unsplash.com/photo-1554260570-9140fd3b7614?w=700&q=80&fit=crop',
+  'Krypto-Regulierung':
+    'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=700&q=80&fit=crop',
+  'Institutional Adoption':
+    'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop',
+  'Mining & Infrastruktur':
+    'https://images.unsplash.com/photo-1516245834210-c4c142787335?w=700&q=80&fit=crop',
+  'Web3 & Metaverse':
+    'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=700&q=80&fit=crop',
+  'Altcoins & Small Caps':
+    'https://images.unsplash.com/photo-1607799279861-4dd421887fb3?w=700&q=80&fit=crop',
+  'Sonstiges':
+    'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=700&q=80&fit=crop',
 }
 
 function fmt(n: number) {
@@ -347,7 +383,7 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         </div>
 
         {/* Live-Indikator wenn Markt offen (nur Equity) */}
-        {isOpen && cat === 'equity' && (
+        {isOpen && (cat === 'equity' || cat === 'crypto') && (
           <div className="ac-live">
             <span className="ac-live-dot" />
             <span>LIVE</span>
@@ -362,7 +398,7 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         </div>
       </div>
 
-      {cat === 'equity' && (displayPrice || a.price_target) && (
+      {(cat === 'equity' || cat === 'crypto') && (displayPrice || a.price_target) && (
         <div className="ac-prices">
           {/* Kurs → Ziel flow */}
           <div className="ac-price-flow">
@@ -450,22 +486,24 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
 
 // ─── Grid ─────────────────────────────────────────────────────────────────────
 export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }) {
-  const [activeTab, setActiveTab] = useState<'all' | 'equity' | 'geo'>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'equity' | 'geo' | 'crypto'>('all')
 
   const counts = {
     all:    analyses.length,
     equity: analyses.filter(a => (a.category ?? 'equity') === 'equity').length,
     geo:    analyses.filter(a => (a.category ?? 'equity') === 'geo').length,
+    crypto: analyses.filter(a => (a.category ?? 'equity') === 'crypto').length,
   }
 
   const filtered = activeTab === 'all'
     ? analyses
     : analyses.filter(a => (a.category ?? 'equity') === activeTab)
 
-  const TABS: { key: 'all' | 'equity' | 'geo'; label: string; color: string }[] = [
+  const TABS: { key: 'all' | 'equity' | 'geo' | 'crypto'; label: string; color: string }[] = [
     { key: 'all',    label: 'ALL',              color: '#94a3b8' },
     { key: 'equity', label: 'EQUITY RESEARCH',  color: '#c9a227' },
     { key: 'geo',    label: 'MACRO / GEOPOLITICS', color: '#38bdf8' },
+    { key: 'crypto', label: 'DIGITAL ASSETS',   color: '#f97316' },
   ]
 
   if (!analyses || analyses.length === 0) {
