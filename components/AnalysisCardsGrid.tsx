@@ -283,12 +283,50 @@ const CAT_LABELS: Record<string, string> = {
   crypto: 'Digital Assets',
 }
 
-// ─── Crypto-Kategorie Bilder (nach Themenbereich) ─────────────────────────────
+// ─── Crypto-Kategorie Bilder (Coins + Themen) ────────────────────────────────
 const CRYPTO_IMAGE_MAP: Record<string, string> = {
+  // ── Top 20 Coins ──
   'Bitcoin (BTC)':
     'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=700&q=80&fit=crop',
   'Ethereum (ETH)':
     'https://images.unsplash.com/photo-1622630998477-20aa696ecb05?w=700&q=80&fit=crop',
+  'Tether (USDT)':
+    'https://images.unsplash.com/photo-1554260570-9140fd3b7614?w=700&q=80&fit=crop',
+  'BNB (BNB)':
+    'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=700&q=80&fit=crop',
+  'Solana (SOL)':
+    'https://images.unsplash.com/photo-1642790551116-18e150f248e3?w=700&q=80&fit=crop',
+  'XRP (XRP)':
+    'https://images.unsplash.com/photo-1607799279861-4dd421887fb3?w=700&q=80&fit=crop',
+  'USD Coin (USDC)':
+    'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=700&q=80&fit=crop',
+  'Dogecoin (DOGE)':
+    'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=700&q=80&fit=crop',
+  'Cardano (ADA)':
+    'https://images.unsplash.com/photo-1639152201720-5e536d254d81?w=700&q=80&fit=crop',
+  'TRON (TRX)':
+    'https://images.unsplash.com/photo-1644361566696-3d442b5b482a?w=700&q=80&fit=crop',
+  'Avalanche (AVAX)':
+    'https://images.unsplash.com/photo-1641580529108-cf9e47aedbc5?w=700&q=80&fit=crop',
+  'Polkadot (DOT)':
+    'https://images.unsplash.com/photo-1640161704729-cbe966a08476?w=700&q=80&fit=crop',
+  'Chainlink (LINK)':
+    'https://images.unsplash.com/photo-1639322537228-f710d846310a?w=700&q=80&fit=crop',
+  'Polygon (POL)':
+    'https://images.unsplash.com/photo-1642790106117-e829e14a795f?w=700&q=80&fit=crop',
+  'Litecoin (LTC)':
+    'https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=700&q=80&fit=crop',
+  'Shiba Inu (SHIB)':
+    'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=700&q=80&fit=crop',
+  'Uniswap (UNI)':
+    'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop',
+  'Stellar (XLM)':
+    'https://images.unsplash.com/photo-1639762681057-408e52192e55?w=700&q=80&fit=crop',
+  'Cosmos (ATOM)':
+    'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=700&q=80&fit=crop',
+  'Sui (SUI)':
+    'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=700&q=80&fit=crop',
+  // ── Themenbereiche ──
   'Layer 1 Protokolle':
     'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=700&q=80&fit=crop',
   'Layer 2 & Scaling':
