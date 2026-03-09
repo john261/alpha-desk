@@ -68,10 +68,10 @@ export default function DatenschutzPage() {
         <h2>1. Verantwortlicher</h2>
         <div className="info-box">
           <p>
-            <span className="placeholder">[VORNAME NACHNAME]</span><br />
-            <span className="placeholder">[STRASSE NR]</span><br />
-            <span className="placeholder">[PLZ STADT]</span><br />
-            E-Mail: <span className="placeholder">[EMAIL]</span>
+            <span className="placeholder">Stephan Gilger</span><br />
+            <span className="placeholder">Stoeberlstr. 93</span><br />
+            <span className="placeholder">80686 Muenchen</span><br />
+            E-Mail: <span className="placeholder">stephangilger@web.de</span>
           </p>
         </div>
 
