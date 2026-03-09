@@ -1,7 +1,7 @@
 // app/datenschutz/page.tsx
 // ⚠️ PLATZHALTER ersetzen: [VORNAME NACHNAME], [STRASSE NR], [PLZ STADT], [EMAIL]
 
-import Link from 'next/link'
+
 
 export default function DatenschutzPage() {
   return (
@@ -44,8 +44,8 @@ export default function DatenschutzPage() {
 
       <nav className="nav">
         <div className="nav-inner">
-          <Link href="/" className="nav-logo">Alpha<span>Desk</span></Link>
-          <Link href="/" className="back">← Zurück</Link>
+          <a href="/" className="nav-logo">Alpha<span>Desk</span></a>
+          <a href="/" className="back">← Zurück</a>
         </div>
       </nav>
 
@@ -188,9 +188,9 @@ export default function DatenschutzPage() {
         <div className="footer-inner">
           <div className="footer-copy">© {new Date().getFullYear()} AlphaDesk</div>
           <div className="footer-links">
-            <Link href="/impressum" className="footer-link">Impressum</Link>
-            <Link href="/datenschutz" className="footer-link">Datenschutz</Link>
-            <Link href="/agb" className="footer-link">AGB</Link>
+            <a href="/impressum" className="footer-link">Impressum</a>
+            <a href="/datenschutz" className="footer-link">Datenschutz</a>
+            <a href="/agb" className="footer-link">AGB</a>
           </div>
         </div>
       </footer>
