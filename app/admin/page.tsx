@@ -70,6 +70,42 @@ const CRYPTO_TOPICS = [
   'Altcoins & Small Caps', 'Sonstiges',
 ]
 
+// Top 20 Coins mit Logo-URLs (atomic icons CDN)
+const CRYPTO_COINS: { label: string; symbol: string; logo: string }[] = [
+  { label: 'Bitcoin',     symbol: 'BTC',  logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/btc.png' },
+  { label: 'Ethereum',    symbol: 'ETH',  logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/eth.png' },
+  { label: 'Tether',      symbol: 'USDT', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/usdt.png' },
+  { label: 'BNB',         symbol: 'BNB',  logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/bnb.png' },
+  { label: 'Solana',      symbol: 'SOL',  logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/sol.png' },
+  { label: 'XRP',         symbol: 'XRP',  logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/xrp.png' },
+  { label: 'USD Coin',    symbol: 'USDC', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/usdc.png' },
+  { label: 'Dogecoin',    symbol: 'DOGE', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/doge.png' },
+  { label: 'Cardano',     symbol: 'ADA',  logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/ada.png' },
+  { label: 'TRON',        symbol: 'TRX',  logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/trx.png' },
+  { label: 'Avalanche',   symbol: 'AVAX', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/avax.png' },
+  { label: 'Polkadot',    symbol: 'DOT',  logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/dot.png' },
+  { label: 'Chainlink',   symbol: 'LINK', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/link.png' },
+  { label: 'Polygon',     symbol: 'POL',  logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/matic.png' },
+  { label: 'Litecoin',    symbol: 'LTC',  logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/ltc.png' },
+  { label: 'Shiba Inu',   symbol: 'SHIB', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/shib.png' },
+  { label: 'Uniswap',     symbol: 'UNI',  logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/uni.png' },
+  { label: 'Stellar',     symbol: 'XLM',  logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/xlm.png' },
+  { label: 'Cosmos',      symbol: 'ATOM', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/atom.png' },
+  { label: 'Sui',         symbol: 'SUI',  logo: 'https://assets.coingecko.com/coins/images/26375/small/sui-ocean-square.png' },
+  // Themen-Kategorien (behalten)
+  { label: 'Layer 1 Protokolle',    symbol: 'L1',   logo: '' },
+  { label: 'Layer 2 & Scaling',     symbol: 'L2',   logo: '' },
+  { label: 'DeFi & DEX',            symbol: 'DEFI', logo: '' },
+  { label: 'NFT & Gaming',          symbol: 'NFT',  logo: '' },
+  { label: 'Stablecoins',           symbol: 'STBL', logo: '' },
+  { label: 'Krypto-Regulierung',    symbol: 'REG',  logo: '' },
+  { label: 'Institutional Adoption',symbol: 'INST', logo: '' },
+  { label: 'Mining & Infrastruktur',symbol: 'MINE', logo: '' },
+  { label: 'Web3 & Metaverse',      symbol: 'WEB3', logo: '' },
+  { label: 'Altcoins & Small Caps', symbol: 'ALT',  logo: '' },
+  { label: 'Sonstiges',             symbol: '—',    logo: '' },
+]
+
 type FormData = {
   ticker: string; title: string; description: string
   rating: Rating; sector: string; analyst: string
@@ -188,6 +224,115 @@ function ManageList({ analyses, onEdit, onToggle, onDelete }: {
                   onMouseLeave={e => { (e.target as any).style.borderColor = 'var(--border)'; (e.target as any).style.color = 'var(--text-dim)' }}
                 >DEL</button>
               </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Custom Crypto Coin Selector ───────────────────────────────────────────────
+function CryptoSelect({ value, onChange, borderColor }: {
+  value: string
+  onChange: (val: string) => void
+  borderColor: string
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const selected = CRYPTO_COINS.find(c => `${c.label} (${c.symbol})` === value || c.label === value) ?? CRYPTO_COINS[0]
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const displayValue = selected.symbol.length <= 4 && !['L1','L2','DEFI','NFT','STBL','REG','INST','MINE','WEB3','ALT','—'].includes(selected.symbol)
+    ? `${selected.label} (${selected.symbol})`
+    : selected.label
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+          fontFamily: 'DM Mono, monospace', fontSize: 12,
+          background: 'rgba(255,255,255,0.03)', border: `1px solid ${open ? borderColor : 'var(--border)'}`,
+          color: 'var(--text)', padding: '12px 16px', cursor: 'pointer',
+          textAlign: 'left', transition: 'border-color 0.2s',
+        }}
+      >
+        {selected.logo
+          ? <img src={selected.logo} alt={selected.symbol} style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+          : <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(249,115,22,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, color: '#f97316', flexShrink: 0 }}>⬡</span>
+        }
+        <span style={{ flex: 1 }}>{displayValue}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-dim)', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }}>▾</span>
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
+          background: '#0d1220', border: `1px solid ${borderColor}`,
+          borderTop: 'none', maxHeight: 320, overflowY: 'auto',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
+        }}>
+          {/* Coins section */}
+          <div style={{ padding: '8px 12px 4px', fontSize: 8, letterSpacing: 2, color: 'var(--text-dim)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>
+            Top 20 Coins
+          </div>
+          {CRYPTO_COINS.filter(c => c.logo).map(coin => {
+            const val = `${coin.label} (${coin.symbol})`
+            const isActive = displayValue === val
+            return (
+              <button key={coin.symbol} type="button"
+                onClick={() => { onChange(val); setOpen(false) }}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '9px 14px', background: isActive ? 'rgba(249,115,22,0.08)' : 'transparent',
+                  border: 'none', borderBottom: '1px solid rgba(255,255,255,0.04)',
+                  color: isActive ? '#f97316' : 'var(--text)', cursor: 'pointer',
+                  fontFamily: 'DM Mono, monospace', fontSize: 11, textAlign: 'left',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.04)' }}
+                onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+              >
+                <img src={coin.logo} alt={coin.symbol} style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0 }}
+                  onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                <span style={{ flex: 1 }}>{coin.label}</span>
+                <span style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: 1 }}>{coin.symbol}</span>
+              </button>
+            )
+          })}
+          {/* Themen section */}
+          <div style={{ padding: '8px 12px 4px', fontSize: 8, letterSpacing: 2, color: 'var(--text-dim)', textTransform: 'uppercase', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+            Themenbereiche
+          </div>
+          {CRYPTO_COINS.filter(c => !c.logo).map(coin => {
+            const isActive = selected.label === coin.label
+            return (
+              <button key={coin.symbol} type="button"
+                onClick={() => { onChange(coin.label); setOpen(false) }}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '9px 14px', background: isActive ? 'rgba(249,115,22,0.08)' : 'transparent',
+                  border: 'none', borderBottom: '1px solid rgba(255,255,255,0.04)',
+                  color: isActive ? '#f97316' : 'var(--text)', cursor: 'pointer',
+                  fontFamily: 'DM Mono, monospace', fontSize: 11, textAlign: 'left',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.04)' }}
+                onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+              >
+                <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(249,115,22,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, color: '#f97316', flexShrink: 0 }}>⬡</span>
+                <span>{coin.label}</span>
+              </button>
             )
           })}
         </div>
@@ -442,7 +587,7 @@ export default function AdminPage() {
                     const color  = CATEGORY_COLORS[cat.value]
                     return (
                       <button key={cat.value} className="cat-btn"
-                        onClick={() => setForm(f => ({ ...f, category: cat.value, sector: cat.value === 'equity' ? SECTORS[0].value : cat.value === 'crypto' ? CRYPTO_TOPICS[0] : GEO_TOPICS[0] }))}
+                        onClick={() => setForm(f => ({ ...f, category: cat.value, sector: cat.value === 'equity' ? SECTORS[0].value : cat.value === 'crypto' ? 'Bitcoin (BTC)' : GEO_TOPICS[0] }))}
                         style={{ fontFamily: 'DM Mono, monospace', padding: '18px 20px', border: `1px solid ${active ? color : 'var(--border)'}`, background: active ? `${color}12` : 'rgba(255,255,255,0.02)', cursor: 'pointer', textAlign: 'left', opacity: active ? 1 : 0.55 }}>
                         <div style={{ fontSize: 18, marginBottom: 8, color }}>{cat.icon}</div>
                         <div style={{ fontSize: 11, letterSpacing: 2, color: active ? color : 'var(--text)', textTransform: 'uppercase', marginBottom: 4 }}>{cat.label}</div>
@@ -518,13 +663,19 @@ export default function AdminPage() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 10 }}>{isEquity ? 'Sektor' : 'Themenbereich'}</label>
+                  {form.category === 'crypto' ? (
+                    <CryptoSelect
+                      value={form.sector}
+                      onChange={val => setForm(f => ({ ...f, sector: val }))}
+                      borderColor={catColor}
+                    />
+                  ) : (
                   <select {...F('sector')} className="focus-gold" style={{ ...inputStyle, cursor: 'pointer' }}>
                     {form.category === 'equity'
                       ? SECTORS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)
-                      : form.category === 'crypto'
-                      ? CRYPTO_TOPICS.map(t => <option key={t} value={t}>{t}</option>)
                       : GEO_TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
+                  )}
                 </div>
 
                 <div>
