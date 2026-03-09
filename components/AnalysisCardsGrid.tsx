@@ -246,7 +246,7 @@ function getCardImage(a: Analysis): string {
   }
 
   if (category === 'crypto') {
-    return CRYPTO_IMAGE_MAP[sector] ?? 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=700&q=80&fit=crop'
+    return '' // handled via getCryptoBrand
   }
 
   // 1. Exaktes Matching auf Dropdown-Wert (neue Analysen)
@@ -283,72 +283,40 @@ const CAT_LABELS: Record<string, string> = {
   crypto: 'Digital Assets',
 }
 
-// ─── Crypto-Kategorie Bilder (Coins + Themen) ────────────────────────────────
-const CRYPTO_IMAGE_MAP: Record<string, string> = {
-  // ── Top 20 Coins ──
-  'Bitcoin (BTC)':
-    'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=700&q=80&fit=crop',
-  'Ethereum (ETH)':
-    'https://images.unsplash.com/photo-1622630998477-20aa696ecb05?w=700&q=80&fit=crop',
-  'Tether (USDT)':
-    'https://images.unsplash.com/photo-1554260570-9140fd3b7614?w=700&q=80&fit=crop',
-  'BNB (BNB)':
-    'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=700&q=80&fit=crop',
-  'Solana (SOL)':
-    'https://images.unsplash.com/photo-1642790551116-18e150f248e3?w=700&q=80&fit=crop',
-  'XRP (XRP)':
-    'https://images.unsplash.com/photo-1607799279861-4dd421887fb3?w=700&q=80&fit=crop',
-  'USD Coin (USDC)':
-    'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=700&q=80&fit=crop',
-  'Dogecoin (DOGE)':
-    'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=700&q=80&fit=crop',
-  'Cardano (ADA)':
-    'https://images.unsplash.com/photo-1639152201720-5e536d254d81?w=700&q=80&fit=crop',
-  'TRON (TRX)':
-    'https://images.unsplash.com/photo-1644361566696-3d442b5b482a?w=700&q=80&fit=crop',
-  'Avalanche (AVAX)':
-    'https://images.unsplash.com/photo-1641580529108-cf9e47aedbc5?w=700&q=80&fit=crop',
-  'Polkadot (DOT)':
-    'https://images.unsplash.com/photo-1640161704729-cbe966a08476?w=700&q=80&fit=crop',
-  'Chainlink (LINK)':
-    'https://images.unsplash.com/photo-1639322537228-f710d846310a?w=700&q=80&fit=crop',
-  'Polygon (POL)':
-    'https://images.unsplash.com/photo-1642790106117-e829e14a795f?w=700&q=80&fit=crop',
-  'Litecoin (LTC)':
-    'https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=700&q=80&fit=crop',
-  'Shiba Inu (SHIB)':
-    'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=700&q=80&fit=crop',
-  'Uniswap (UNI)':
-    'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop',
-  'Stellar (XLM)':
-    'https://images.unsplash.com/photo-1639762681057-408e52192e55?w=700&q=80&fit=crop',
-  'Cosmos (ATOM)':
-    'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=700&q=80&fit=crop',
-  'Sui (SUI)':
-    'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=700&q=80&fit=crop',
-  // ── Themenbereiche ──
-  'Layer 1 Protokolle':
-    'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=700&q=80&fit=crop',
-  'Layer 2 & Scaling':
-    'https://images.unsplash.com/photo-1642790551116-18e150f248e3?w=700&q=80&fit=crop',
-  'DeFi & DEX':
-    'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop',
-  'NFT & Gaming':
-    'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=700&q=80&fit=crop',
-  'Stablecoins':
-    'https://images.unsplash.com/photo-1554260570-9140fd3b7614?w=700&q=80&fit=crop',
-  'Krypto-Regulierung':
-    'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=700&q=80&fit=crop',
-  'Institutional Adoption':
-    'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop',
-  'Mining & Infrastruktur':
-    'https://images.unsplash.com/photo-1516245834210-c4c142787335?w=700&q=80&fit=crop',
-  'Web3 & Metaverse':
-    'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=700&q=80&fit=crop',
-  'Altcoins & Small Caps':
-    'https://images.unsplash.com/photo-1607799279861-4dd421887fb3?w=700&q=80&fit=crop',
-  'Sonstiges':
-    'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=700&q=80&fit=crop',
+// ─── Crypto Brand Colors & Logos ─────────────────────────────────────────────
+const CRYPTO_BRAND: Record<string, { gradient: string; logo: string }> = {
+  'Bitcoin (BTC)':        { gradient: 'linear-gradient(135deg,#1a0a00 0%,#3d1f00 40%,#7a3d00 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/btc.png' },
+  'Ethereum (ETH)':       { gradient: 'linear-gradient(135deg,#0d0d2b 0%,#1a1a4e 40%,#2d2d8f 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/eth.png' },
+  'Tether (USDT)':        { gradient: 'linear-gradient(135deg,#001a12 0%,#003d2b 40%,#006644 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/usdt.png' },
+  'BNB (BNB)':            { gradient: 'linear-gradient(135deg,#1a1400 0%,#3d3000 40%,#7a5f00 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/bnb.png' },
+  'Solana (SOL)':         { gradient: 'linear-gradient(135deg,#0d0020 0%,#1e0040 40%,#6600cc 70%,#00c97a 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/sol.png' },
+  'XRP (XRP)':            { gradient: 'linear-gradient(135deg,#001a2b 0%,#003d66 40%,#0077b3 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/xrp.png' },
+  'USD Coin (USDC)':      { gradient: 'linear-gradient(135deg,#001226 0%,#002b59 40%,#004fa3 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/usdc.png' },
+  'Dogecoin (DOGE)':      { gradient: 'linear-gradient(135deg,#1a1200 0%,#3d2b00 40%,#8a6200 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/doge.png' },
+  'Cardano (ADA)':        { gradient: 'linear-gradient(135deg,#000d26 0%,#001a59 40%,#0033ad 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/ada.png' },
+  'TRON (TRX)':           { gradient: 'linear-gradient(135deg,#1a0000 0%,#400000 40%,#8f0000 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/trx.png' },
+  'Avalanche (AVAX)':     { gradient: 'linear-gradient(135deg,#1a0000 0%,#400000 40%,#cc1a1a 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/avax.png' },
+  'Polkadot (DOT)':       { gradient: 'linear-gradient(135deg,#1a0020 0%,#3d004d 40%,#8f0066 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/dot.png' },
+  'Chainlink (LINK)':     { gradient: 'linear-gradient(135deg,#000d26 0%,#001566 40%,#1a3dcc 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/link.png' },
+  'Polygon (POL)':        { gradient: 'linear-gradient(135deg,#0d0020 0%,#250059 40%,#6633cc 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/matic.png' },
+  'Litecoin (LTC)':       { gradient: 'linear-gradient(135deg,#0d0d0d 0%,#1a1a1a 40%,#4a4a4a 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/ltc.png' },
+  'Shiba Inu (SHIB)':     { gradient: 'linear-gradient(135deg,#1a0800 0%,#3d1a00 40%,#cc5200 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/shib.png' },
+  'Uniswap (UNI)':        { gradient: 'linear-gradient(135deg,#1a0013 0%,#400030 40%,#cc007a 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/uni.png' },
+  'Stellar (XLM)':        { gradient: 'linear-gradient(135deg,#001626 0%,#003359 40%,#0088cc 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/xlm.png' },
+  'Cosmos (ATOM)':        { gradient: 'linear-gradient(135deg,#050810 0%,#0e1228 40%,#2e3148 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/atom.png' },
+  'Sui (SUI)':            { gradient: 'linear-gradient(135deg,#001226 0%,#002b59 40%,#1a66cc 100%)', logo: 'https://assets.coingecko.com/coins/images/26375/small/sui-ocean-square.png' },
+  // Themenbereiche
+  'Layer 1 Protokolle':   { gradient: 'linear-gradient(135deg,#0a0a1a 0%,#1a1a3d 100%)', logo: '' },
+  'Layer 2 & Scaling':    { gradient: 'linear-gradient(135deg,#0a1a1a 0%,#1a3d3d 100%)', logo: '' },
+  'DeFi & DEX':           { gradient: 'linear-gradient(135deg,#0a1a0a 0%,#1a3d1a 100%)', logo: '' },
+  'NFT & Gaming':         { gradient: 'linear-gradient(135deg,#1a0a1a 0%,#3d1a3d 100%)', logo: '' },
+  'Stablecoins':          { gradient: 'linear-gradient(135deg,#0a1a0a 0%,#1a4d2e 100%)', logo: '' },
+  'Krypto-Regulierung':   { gradient: 'linear-gradient(135deg,#1a1a0a 0%,#3d3d00 100%)', logo: '' },
+  'Institutional Adoption':{ gradient:'linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 100%)', logo: '' },
+  'Mining & Infrastruktur':{ gradient:'linear-gradient(135deg,#1a0a00 0%,#3d2000 100%)', logo: '' },
+  'Web3 & Metaverse':     { gradient: 'linear-gradient(135deg,#0d001a 0%,#2d0059 100%)', logo: '' },
+  'Altcoins & Small Caps':{ gradient: 'linear-gradient(135deg,#0a0a1a 0%,#1a1a4d 100%)', logo: '' },
+  'Sonstiges':            { gradient: 'linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 100%)', logo: '' },
 }
 
 function fmt(n: number) {
@@ -397,7 +365,27 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
 
       {/* ── Bild-Header ─────────────────────────────────────────── */}
       <div className="ac-img-wrap">
-        {!imgError ? (
+        {cat === 'crypto' ? (
+          <div style={{
+            width: '100%', height: '100%',
+            background: CRYPTO_BRAND[a.sector ?? '']?.gradient ?? 'linear-gradient(135deg,#0a0a1a 0%,#1a1a3d 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'relative',
+          }}>
+            {/* subtle hex grid pattern */}
+            <div style={{ position: 'absolute', inset: 0, opacity: 0.06, backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+            {CRYPTO_BRAND[a.sector ?? '']?.logo ? (
+              <img
+                src={CRYPTO_BRAND[a.sector ?? '']?.logo}
+                alt={a.sector ?? ''}
+                style={{ width: 80, height: 80, objectFit: 'contain', filter: 'drop-shadow(0 0 24px rgba(255,255,255,0.25))', position: 'relative', zIndex: 1 }}
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+              />
+            ) : (
+              <span style={{ fontSize: 48, opacity: 0.4, position: 'relative', zIndex: 1 }}>⬡</span>
+            )}
+          </div>
+        ) : !imgError ? (
           <img
             src={getCardImage(a)}
             alt={a.title}
