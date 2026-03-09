@@ -65,23 +65,23 @@ export default function ImpressumPage() {
 
         <h2>Angaben gemäß § 5 TMG</h2>
         <p>
-          <span className="placeholder">[VORNAME NACHNAME]</span><br />
-          <span className="placeholder">[STRASSE NR]</span><br />
-          <span className="placeholder">[PLZ STADT]</span>
+          <span className="placeholder">Stephan Gilger</span><br />
+          <span className="placeholder">Stoeberlstr. 93</span><br />
+          <span className="placeholder">80686 Muenchen</span>
         </p>
 
         <div className="divider" />
 
         <h2>Kontakt</h2>
-        <p>E-Mail: <a href="mailto:"><span className="placeholder">[EMAIL]</span></a></p>
+        <p>E-Mail: <a href="mailto:"><span className="placeholder">stephangilger@web.de</span></a></p>
 
         <div className="divider" />
 
         <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2>
         <p>
-          <span className="placeholder">[VORNAME NACHNAME]</span><br />
-          <span className="placeholder">[STRASSE NR]</span><br />
-          <span className="placeholder">[PLZ STADT]</span>
+          <span className="placeholder">Stephan Gilger</span><br />
+          <span className="placeholder">[Stoeberlstr. 93</span><br />
+          <span className="placeholder">80686 Muenchen</span>
         </p>
 
         <div className="divider" />

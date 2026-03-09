@@ -159,7 +159,7 @@ export default function DatenschutzPage() {
         </ul>
         <p>
           Zur Ausübung Ihrer Rechte wenden Sie sich bitte an:{' '}
-          <a href="mailto:"><span className="placeholder">[EMAIL]</span></a>
+          <a href="mailto:"><span className="placeholder">stephangilger@web.de</span></a>
         </p>
         <p>
           Sie haben zudem das Recht, sich bei einer Datenschutz-Aufsichtsbehörde zu beschweren.
