@@ -1,6 +1,8 @@
 // app/datenschutz/page.tsx
 // ⚠️ PLATZHALTER ersetzen: [VORNAME NACHNAME], [STRASSE NR], [PLZ STADT], [EMAIL]
 
+import Link from 'next/link'
+
 export default function DatenschutzPage() {
   return (
     <>
@@ -26,24 +28,42 @@ export default function DatenschutzPage() {
         .placeholder { background:#fef3c7; padding:2px 6px; border-radius:2px; color:#92400e; font-weight:500; }
         .divider { height:1px; background:#e2e8f0; margin:32px 0; }
         .info-box { background:#fff; border:1px solid #e2e8f0; padding:20px 24px; margin:16px 0; }
+        .disclaimer-box {
+          background:#fff3cd; border:2px solid #f0a500; border-left:6px solid #f0a500;
+          padding:20px 24px; margin:0 0 40px; border-radius:2px;
+        }
+        .disclaimer-box p { color:#7a4f00; font-size:13px; line-height:1.9; margin:0; }
+        .disclaimer-box strong { color:#5a3700; display:block; margin-bottom:6px; letter-spacing:1px; font-size:11px; text-transform:uppercase; }
         .footer { background:#0a1628; border-top:3px solid #c9a227; margin-top:80px; }
         .footer-inner { max-width:1200px; margin:0 auto; padding:24px 32px; display:flex; justify-content:space-between; align-items:center; }
         .footer-copy { font-size:8px; color:#334155; letter-spacing:1px; text-transform:uppercase; }
         .footer-links { display:flex; gap:24px; }
-        .footer-link { font-size:8px; letter-spacing:2px; color:#334155; text-transform:uppercase; text-decoration:none; transition:color .2s; }
+        .footer-link { font-size:8px; letter-spacing:2px; color:#475569; text-transform:uppercase; text-decoration:none; transition:color .2s; }
         .footer-link:hover { color:#c9a227; }
       `}</style>
 
       <nav className="nav">
         <div className="nav-inner">
-          <a href="/" className="nav-logo">Alpha<span>Desk</span></a>
-          <a href="/" className="back">← Zurück</a>
+          <Link href="/" className="nav-logo">Alpha<span>Desk</span></Link>
+          <Link href="/" className="back">← Zurück</Link>
         </div>
       </nav>
 
       <div className="wrap">
         <div className="eyebrow">Rechtliches</div>
         <h1>Datenschutzerklärung</h1>
+
+        {/* ── Disclaimer-Box ── */}
+        <div className="disclaimer-box">
+          <p>
+            <strong>⚠ Wichtiger Hinweis</strong>
+            AlphaDesk ist ein rein privates Unterhaltungsprojekt. Sämtliche Inhalte —
+            einschließlich aller Analysen, Kursziele, Ratings und Marktkommentare — dienen
+            ausschließlich der Unterhaltung und persönlichen Meinungsäußerung des Betreibers.
+            Es handelt sich um keinerlei Finanz-, Anlage- oder Investmentberatung.
+            Keine Investitionsentscheidung sollte auf Basis dieser Inhalte getroffen werden.
+          </p>
+        </div>
 
         <h2>1. Verantwortlicher</h2>
         <div className="info-box">
@@ -59,8 +79,8 @@ export default function DatenschutzPage() {
 
         <h2>2. Erhebung und Speicherung personenbezogener Daten</h2>
         <p>
-          Diese Website ist eine rein informative Plattform für Aktienanalysen. Es findet
-          keine Registrierung oder Nutzerkonten für Besucher statt.
+          Diese Website ist eine rein informative Unterhaltungsplattform für Marktkommentare
+          und Meinungen. Es findet keine Registrierung oder Nutzerkonten für Besucher statt.
         </p>
 
         <h3>Beim Besuch der Website</h3>
@@ -91,18 +111,19 @@ export default function DatenschutzPage() {
         <h2>4. Datenbank — Supabase</h2>
         <p>
           Die Website nutzt Supabase (Supabase Inc., San Francisco, USA) als Datenbank-Backend
-          zur Speicherung und Verwaltung der veröffentlichten Analysen. Es werden ausschließlich
-          Inhalte (Analysetexte, Ticker-Daten) gespeichert — keine personenbezogenen Besucherdaten.
-          Weitere Informationen: <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">supabase.com/privacy</a>
+          zur Speicherung und Verwaltung der veröffentlichten Inhalte. Es werden ausschließlich
+          redaktionelle Inhalte (Texte, Ticker-Daten) gespeichert — keine personenbezogenen
+          Besucherdaten. Weitere Informationen: <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">supabase.com/privacy</a>
         </p>
 
         <div className="divider" />
 
         <h2>5. Externe Kursdaten — Yahoo Finance</h2>
         <p>
-          Zur Anzeige aktueller Aktienkurse werden Daten von Yahoo Finance (Yahoo Inc., USA)
-          abgerufen. Dieser Abruf erfolgt serverseitig — es werden dabei keine personenbezogenen
-          Daten der Besucher an Yahoo übermittelt.
+          Zur Anzeige aktueller Kursdaten werden Informationen von Yahoo Finance (Yahoo Inc., USA)
+          serverseitig abgerufen. Es werden dabei keine personenbezogenen Daten der Besucher
+          an Yahoo übermittelt. Die angezeigten Kurse dienen rein der Unterhaltung und
+          Veranschaulichung — sie stellen keine Handelsgrundlage dar.
         </p>
 
         <div className="divider" />
@@ -146,13 +167,16 @@ export default function DatenschutzPage() {
 
         <div className="divider" />
 
-        <h2>9. Haftungshinweis Kapitalmarkt</h2>
+        <h2>9. Haftungsausschluss Kapitalmarkt</h2>
         <p>
-          Die auf dieser Website veröffentlichten Aktienanalysen und Kursziele dienen ausschließlich
-          zu Informationszwecken. Sie stellen keine Anlageberatung oder Aufforderung zum Kauf oder
-          Verkauf von Wertpapieren dar. Vergangene Wertentwicklungen sind kein verlässlicher Indikator
-          für zukünftige Ergebnisse. Investitionen in Wertpapiere sind mit Risiken verbunden,
-          bis hin zum Totalverlust des eingesetzten Kapitals.
+          Alle auf dieser Website veröffentlichten Inhalte — insbesondere Marktkommentare,
+          Meinungen, Ratings und Kursziele — dienen <strong>ausschließlich der Unterhaltung</strong> und
+          der persönlichen Meinungsäußerung des Betreibers. Sie begründen keinerlei
+          Anlageberatung, Anlageempfehlung oder Aufforderung zum Kauf oder Verkauf von
+          Wertpapieren oder sonstigen Finanzinstrumenten. Der Betreiber ist kein lizenzierter
+          Finanzberater und übernimmt keinerlei Haftung für Entscheidungen, die auf Basis
+          dieser Inhalte getroffen werden. Investitionen in Wertpapiere sind mit Risiken
+          verbunden, bis hin zum Totalverlust des eingesetzten Kapitals.
         </p>
 
         <p style={{ marginTop: 32, fontSize: 11, color: '#94a3b8' }}>
@@ -164,9 +188,9 @@ export default function DatenschutzPage() {
         <div className="footer-inner">
           <div className="footer-copy">© {new Date().getFullYear()} AlphaDesk</div>
           <div className="footer-links">
-            <a href="/impressum" className="footer-link">Impressum</a>
-            <a href="/datenschutz" className="footer-link">Datenschutz</a>
-            <a href="/agb" className="footer-link">AGB</a>
+            <Link href="/impressum" className="footer-link">Impressum</Link>
+            <Link href="/datenschutz" className="footer-link">Datenschutz</Link>
+            <Link href="/agb" className="footer-link">AGB</Link>
           </div>
         </div>
       </footer>
