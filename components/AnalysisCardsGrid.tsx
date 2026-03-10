@@ -381,7 +381,8 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
 
   return (
     <div style={{
-      background: '#0b1525',
+      background: '#111e33',
+      borderTop: '2px solid #1e2e48',
       borderBottom: '1px solid #1a2a42',
       position: 'relative',
       height: 120,
@@ -609,6 +610,7 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         </div>
       </div>
 
+      {/* ── Chart (klar getrennt vom Bild) ──────────────────────── */}
       <MiniChart ticker={a.ticker} category={cat} />
 
       {(cat === 'equity' || cat === 'crypto') && (displayPrice || a.price_target) && (
