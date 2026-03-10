@@ -324,16 +324,27 @@ function fmt(n: number) {
   return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-// ─── 6M Chart hook ───────────────────────────────────────────────────────────
-function useChartData(ticker: string, category: string) {
+// ─── Chart hook (range-aware) ─────────────────────────────────────────────────
+type Range = '3M' | '6M' | '1Y'
+const RANGE_PARAMS: Record<Range, { interval: string; range: string }> = {
+  '3M': { interval: '1wk', range: '3mo' },
+  '6M': { interval: '1wk', range: '6mo' },
+  '1Y': { interval: '1mo', range: '1y'  },
+}
+
+function useChartData(ticker: string, category: string, range: Range) {
   const [points, setPoints] = useState<{ v: number }[] | null>(null)
   const [trend, setTrend]   = useState<'up' | 'down' | 'flat'>('flat')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!ticker || category === 'geo') return
     let cancelled = false
-    fetch(`/api/chart?ticker=${encodeURIComponent(ticker)}`)
-      .then(r => r.json())
+    setLoading(true)
+    setPoints(null)
+    const { interval, range: r } = RANGE_PARAMS[range]
+    fetch(`/api/chart?ticker=${encodeURIComponent(ticker)}&interval=${interval}&range=${r}`)
+      .then(res => res.json())
       .then(d => {
         if (cancelled || !Array.isArray(d.prices) || d.prices.length < 2) return
         const pts = (d.prices as number[]).map(v => ({ v }))
@@ -342,94 +353,157 @@ function useChartData(ticker: string, category: string) {
         setTrend(last > first * 1.002 ? 'up' : last < first * 0.998 ? 'down' : 'flat')
       })
       .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [ticker, category])
+  }, [ticker, category, range])
 
-  return { points, trend }
+  return { points, trend, loading }
 }
 
 // ─── Mini Chart Component ────────────────────────────────────────────────────
-function MiniChart({ ticker, category, rating }: { ticker: string; category: string; rating: string }) {
-  const { points, trend } = useChartData(ticker, category)
+function MiniChart({ ticker, category }: { ticker: string; category: string }) {
+  const [range, setRange] = useState<Range>('6M')
+  const { points, trend, loading } = useChartData(ticker, category, range)
 
-  if (!points || category === 'geo') return null
+  if (category === 'geo') return null
 
   const COLORS = {
-    up:   { stroke: '#22c55e', fill: '#22c55e' },
-    down: { stroke: '#ef4444', fill: '#ef4444' },
-    flat: { stroke: '#c9a227', fill: '#c9a227' },
+    up:   { stroke: '#22c55e', glow: 'rgba(34,197,94,0.18)' },
+    down: { stroke: '#f87171', glow: 'rgba(248,113,113,0.14)' },
+    flat: { stroke: '#c9a227', glow: 'rgba(201,162,39,0.14)' },
   }
   const col = COLORS[trend]
 
-  const pct = points.length >= 2
+  const pct = points && points.length >= 2
     ? (((points[points.length - 1].v - points[0].v) / points[0].v) * 100).toFixed(1)
     : null
+  const isUp = Number(pct) >= 0
 
   return (
     <div style={{
-      background: '#0c1628',
-      borderBottom: '1px solid #1e2e48',
-      padding: '0 0 0 0',
+      background: '#0b1525',
+      borderBottom: '1px solid #1a2a42',
       position: 'relative',
-      height: 68,
+      height: 120,
+      overflow: 'hidden',
     }}>
-      {/* 6M label */}
+      {/* glow */}
       <div style={{
-        position: 'absolute', top: 7, left: 14, zIndex: 2,
-        fontFamily: "'DM Mono', monospace",
-        fontSize: 7, letterSpacing: 2.5,
-        color: 'rgba(255,255,255,0.3)',
-        textTransform: 'uppercase',
+        position: 'absolute', inset: 0,
+        background: `radial-gradient(ellipse 80% 55% at 50% 100%, ${col.glow}, transparent)`,
+        pointerEvents: 'none', transition: 'background 0.4s ease',
+      }} />
+
+      {/* Top row: range tabs left, pct right */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 3,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '8px 12px 0',
       }}>
-        6M
+        {/* Range toggle */}
+        <div style={{ display: 'flex', gap: 2 }}>
+          {(['3M', '6M', '1Y'] as Range[]).map(r => (
+            <button
+              key={r}
+              onClick={() => setRange(r)}
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 7, letterSpacing: 1.5,
+                padding: '2px 7px',
+                border: 'none', cursor: 'pointer',
+                borderRadius: 2,
+                background: range === r ? col.stroke : 'rgba(255,255,255,0.06)',
+                color: range === r ? '#0b1525' : 'rgba(255,255,255,0.28)',
+                fontWeight: range === r ? 700 : 400,
+                transition: 'all 0.18s ease',
+              }}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+
+        {/* Performance */}
+        {pct !== null && !loading && (
+          <div style={{
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 11, letterSpacing: 0.5,
+            color: col.stroke, fontWeight: 600,
+            display: 'flex', alignItems: 'center', gap: 3,
+            transition: 'color 0.3s ease',
+          }}>
+            <span style={{ fontSize: 8 }}>{isUp ? '▲' : '▼'}</span>
+            {isUp ? '+' : ''}{pct}%
+          </div>
+        )}
+
+        {/* Loading shimmer for pct */}
+        {loading && (
+          <div style={{
+            width: 48, height: 10, borderRadius: 3,
+            background: 'linear-gradient(90deg, #1a2a42 25%, #243550 50%, #1a2a42 75%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 1.4s ease infinite',
+          }} />
+        )}
       </div>
-      {/* Performance badge */}
-      {pct !== null && (
+
+      {/* Chart or skeleton */}
+      {loading || !points ? (
         <div style={{
-          position: 'absolute', top: 7, right: 12, zIndex: 2,
-          fontFamily: "'DM Mono', monospace",
-          fontSize: 9, letterSpacing: 1,
-          color: col.stroke,
-          fontWeight: 500,
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          height: 85, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          {Number(pct) >= 0 ? '+' : ''}{pct}%
+          <div style={{
+            width: '88%', height: 2, borderRadius: 2,
+            background: 'linear-gradient(90deg, #1a2a42 25%, #243550 50%, #1a2a42 75%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 1.4s ease infinite',
+          }} />
+        </div>
+      ) : (
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 90 }}>
+          <ResponsiveContainer width="100%" height={90}>
+            <AreaChart data={points} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
+              <defs>
+                <linearGradient id={`cg-${ticker}-${range}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"  stopColor={col.stroke} stopOpacity={0.22} />
+                  <stop offset="100%" stopColor={col.stroke} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area
+                type="monotone"
+                dataKey="v"
+                stroke={col.stroke}
+                strokeWidth={2}
+                fill={`url(#cg-${ticker}-${range})`}
+                dot={false}
+                isAnimationActive={true}
+                animationDuration={600}
+                animationEasing="ease-out"
+              />
+              <Tooltip
+                cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1, strokeDasharray: '3 3' }}
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null
+                  return (
+                    <div style={{
+                      background: '#0c1628',
+                      border: `1px solid ${col.stroke}55`,
+                      padding: '4px 9px',
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 9, color: col.stroke, letterSpacing: 1,
+                      boxShadow: `0 4px 16px rgba(0,0,0,0.5)`,
+                    }}>
+                      €{fmt(payload[0].value as number)}
+                    </div>
+                  )
+                }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       )}
-      <ResponsiveContainer width="100%" height={68}>
-        <AreaChart data={points} margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
-          <defs>
-            <linearGradient id={`cg-${ticker}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%"  stopColor={col.fill} stopOpacity={0.22} />
-              <stop offset="95%" stopColor={col.fill} stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <Area
-            type="monotone"
-            dataKey="v"
-            stroke={col.stroke}
-            strokeWidth={1.5}
-            fill={`url(#cg-${ticker})`}
-            dot={false}
-            isAnimationActive={true}
-            animationDuration={800}
-          />
-          <Tooltip
-            content={({ active, payload }) => {
-              if (!active || !payload?.length) return null
-              return (
-                <div style={{
-                  background: '#0c1628', border: '1px solid #1e2e48',
-                  padding: '4px 8px',
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 9, color: col.stroke, letterSpacing: 1,
-                }}>
-                  €{fmt(payload[0].value as number)}
-                </div>
-              )
-            }}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
     </div>
   )
 }
@@ -535,7 +609,7 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         </div>
       </div>
 
-      <MiniChart ticker={a.ticker} category={cat} rating={a.rating} />
+      <MiniChart ticker={a.ticker} category={cat} />
 
       {(cat === 'equity' || cat === 'crypto') && (displayPrice || a.price_target) && (
         <div className="ac-prices">
@@ -664,6 +738,7 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
 
         @keyframes fadeUp    { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
         @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(1.7)} }
+        @keyframes shimmer   { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
         .ac-grid {
           display: grid;

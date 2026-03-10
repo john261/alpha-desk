@@ -3,17 +3,24 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const revalidate = 3600
 
-export async function GET(req: NextRequest) {
-  const ticker = req.nextUrl.searchParams.get('ticker')
-  if (!ticker) return NextResponse.json({ error: 'missing ticker' }, { status: 400 })
+const VALID_INTERVALS = ['1d', '1wk', '1mo']
+const VALID_RANGES    = ['1mo', '3mo', '6mo', '1y', '2y']
 
-  // Automatisch .DE anhängen wenn kein Exchange-Suffix vorhanden
+export async function GET(req: NextRequest) {
+  const ticker   = req.nextUrl.searchParams.get('ticker')
+  const interval = req.nextUrl.searchParams.get('interval') ?? '1wk'
+  const range    = req.nextUrl.searchParams.get('range')    ?? '6mo'
+
+  if (!ticker) return NextResponse.json({ error: 'missing ticker' }, { status: 400 })
+  if (!VALID_INTERVALS.includes(interval)) return NextResponse.json({ error: 'invalid interval' }, { status: 400 })
+  if (!VALID_RANGES.includes(range))       return NextResponse.json({ error: 'invalid range' },    { status: 400 })
+
   const yahooTicker = ticker.includes('.') ? ticker : `${ticker}.DE`
 
   try {
     const url =
       `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooTicker)}` +
-      `?interval=1wk&range=6mo`
+      `?interval=${interval}&range=${range}`
 
     const res = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0' },
