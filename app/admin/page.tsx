@@ -112,6 +112,13 @@ type FormData = {
   current_price: string; price_target: string; category: string
 }
 
+// Extended Analysis type with versioning fields
+type VersionedAnalysis = Analysis & {
+  version?: number
+  archived?: boolean
+  parent_id?: string | null
+}
+
 const EMPTY_FORM: FormData = {
   ticker: '', title: '', description: '', rating: 'BUY',
   sector: SECTORS[0].value, analyst: '', current_price: '', price_target: '',
@@ -119,24 +126,31 @@ const EMPTY_FORM: FormData = {
 }
 
 // ── Manage List with Filter Tabs ──────────────────────────────────────────────
-function ManageList({ analyses, onEdit, onToggle, onDelete }: {
+function ManageList({ analyses, onEdit, onToggle, onDelete, onNewVersion, showArchived, onToggleArchived }: {
   analyses: Analysis[]
   onEdit: (a: Analysis) => void
   onToggle: (a: Analysis) => void
   onDelete: (a: Analysis) => void
+  onNewVersion: (a: Analysis) => void
+  showArchived: boolean
+  onToggleArchived: () => void
 }) {
   const [filter, setFilter] = useState<'all' | 'equity' | 'geo' | 'crypto'>('all')
 
+  const active   = analyses.filter(a => !(a as any).archived)
+  const archived = analyses.filter(a =>  (a as any).archived)
+  const visible  = showArchived ? archived : active
+
   const counts = {
-    all:    analyses.length,
-    equity: analyses.filter(a => ((a as any).category ?? 'equity') === 'equity').length,
-    geo:    analyses.filter(a => ((a as any).category ?? 'equity') === 'geo').length,
-    crypto: analyses.filter(a => ((a as any).category ?? 'equity') === 'crypto').length,
+    all:    visible.length,
+    equity: visible.filter(a => ((a as any).category ?? 'equity') === 'equity').length,
+    geo:    visible.filter(a => ((a as any).category ?? 'equity') === 'geo').length,
+    crypto: visible.filter(a => ((a as any).category ?? 'equity') === 'crypto').length,
   }
 
   const filtered = filter === 'all'
-    ? analyses
-    : analyses.filter(a => ((a as any).category ?? 'equity') === filter)
+    ? visible
+    : visible.filter(a => ((a as any).category ?? 'equity') === filter)
 
   const FILTER_TABS = [
     { key: 'all'    as const, label: 'ALLE',            color: 'var(--text-dim)' },
@@ -147,6 +161,22 @@ function ManageList({ analyses, onEdit, onToggle, onDelete }: {
 
   return (
     <div>
+      {/* Archive toggle header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div style={{ fontSize: 9, letterSpacing: 2, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
+          {showArchived ? `${archived.length} Archivierte Analysen` : `${active.length} Aktive Analysen`}
+        </div>
+        <button onClick={onToggleArchived} style={{
+          fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
+          background: showArchived ? 'rgba(201,162,39,0.1)' : 'transparent',
+          border: `1px solid ${showArchived ? 'var(--gold)' : 'var(--border)'}`,
+          color: showArchived ? 'var(--gold)' : 'var(--text-dim)',
+          padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase',
+        }}>
+          {showArchived ? '← AKTIVE ANZEIGEN' : `ARCHIV (${archived.length})`}
+        </button>
+      </div>
+
       <div style={{ display: 'flex', marginBottom: 24, borderBottom: '1px solid var(--border)' }}>
         {FILTER_TABS.map(t => (
           <button key={t.key} onClick={() => setFilter(t.key)} style={{
@@ -165,7 +195,7 @@ function ManageList({ analyses, onEdit, onToggle, onDelete }: {
 
       {filtered.length === 0 ? (
         <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--text-dim)', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: 3, textTransform: 'uppercase' }}>
-          Keine Reports in dieser Kategorie
+          {showArchived ? 'Keine archivierten Analysen' : 'Keine Reports in dieser Kategorie'}
         </div>
       ) : (
         <div style={{ border: '1px solid var(--border)' }}>
@@ -173,11 +203,14 @@ function ManageList({ analyses, onEdit, onToggle, onDelete }: {
             const b   = BADGE[a.rating] || BADGE.WATCH
             const cat = (a as any).category ?? 'equity'
             const cc  = CATEGORY_COLORS[cat] ?? '#c9a227'
+            const ver = (a as any).version ?? 1
+            const isArchived = (a as any).archived
             return (
               <div key={a.id} className="row-hover" style={{
                 display: 'flex', alignItems: 'center', gap: 20, padding: '20px 28px',
                 borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
                 transition: 'background 0.2s',
+                opacity: isArchived ? 0.6 : 1,
               }}>
                 <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 20, color: 'var(--gold)', letterSpacing: 2, minWidth: 80 }}>
                   {a.ticker}
@@ -193,27 +226,56 @@ function ManageList({ analyses, onEdit, onToggle, onDelete }: {
                     <span style={{ color: cc, fontSize: 9, letterSpacing: 1, padding: '1px 6px', border: `1px solid ${cc}44` }}>
                       {CATEGORIES.find(c => c.value === cat)?.label ?? cat}
                     </span>
+                    {ver > 1 && (
+                      <span style={{ fontSize: 9, letterSpacing: 1, padding: '1px 6px', border: '1px solid rgba(201,162,39,0.3)', color: 'var(--gold)', background: 'rgba(201,162,39,0.06)' }}>
+                        v{ver}
+                      </span>
+                    )}
+                    {isArchived && (
+                      <span style={{ fontSize: 9, letterSpacing: 1, padding: '1px 6px', border: '1px solid rgba(148,163,184,0.3)', color: '#94a3b8' }}>
+                        ARCHIVIERT
+                      </span>
+                    )}
                     {a.sector && <><span>·</span><span>{a.sector}</span></>}
                     <span>{a.pdf_path ? '· PDF ✓' : '· No PDF'}</span>
                   </div>
                 </div>
 
-                <button className="btn-edit" onClick={() => onEdit(a)} style={{
-                  fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
-                  padding: '6px 14px', border: '1px solid var(--border)',
-                  color: 'var(--text-dim)', background: 'transparent',
-                  cursor: 'pointer', textTransform: 'uppercase', whiteSpace: 'nowrap',
-                }}>EDIT</button>
+                {!isArchived && (
+                  <button className="btn-edit" onClick={() => onEdit(a)} style={{
+                    fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
+                    padding: '6px 14px', border: '1px solid var(--border)',
+                    color: 'var(--text-dim)', background: 'transparent',
+                    cursor: 'pointer', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                  }}>EDIT</button>
+                )}
 
-                <button onClick={() => onToggle(a)} style={{
-                  fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
-                  padding: '6px 14px', border: `1px solid ${a.published ? 'var(--green)' : 'var(--border)'}`,
-                  color: a.published ? 'var(--green)' : 'var(--text-dim)',
-                  background: a.published ? 'rgba(78,201,148,0.08)' : 'transparent',
-                  cursor: 'pointer', textTransform: 'uppercase', whiteSpace: 'nowrap',
-                }}>
-                  {a.published ? 'LIVE' : 'DRAFT'}
-                </button>
+                {!isArchived && (
+                  <button onClick={() => onNewVersion(a)} style={{
+                    fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
+                    padding: '6px 14px', border: '1px solid rgba(201,162,39,0.35)',
+                    color: 'var(--gold)', background: 'rgba(201,162,39,0.06)',
+                    cursor: 'pointer', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(201,162,39,0.15)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(201,162,39,0.06)' }}
+                  >
+                    + VERSION
+                  </button>
+                )}
+
+                {!isArchived && (
+                  <button onClick={() => onToggle(a)} style={{
+                    fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
+                    padding: '6px 14px', border: `1px solid ${a.published ? 'var(--green)' : 'var(--border)'}`,
+                    color: a.published ? 'var(--green)' : 'var(--text-dim)',
+                    background: a.published ? 'rgba(78,201,148,0.08)' : 'transparent',
+                    cursor: 'pointer', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                  }}>
+                    {a.published ? 'LIVE' : 'DRAFT'}
+                  </button>
+                )}
 
                 <button onClick={() => onDelete(a)} style={{
                   fontFamily: 'DM Mono, monospace', fontSize: 9,
@@ -360,6 +422,8 @@ export default function AdminPage() {
   const [existingPdfPath, setExistingPdfPath] = useState<string | null>(null)
   const [existingPdfName, setExistingPdfName] = useState<string | null>(null)
   const [replacePdf, setReplacePdf]           = useState(false)
+  const [versionParentId, setVersionParentId] = useState<string | null>(null)
+  const [showArchived, setShowArchived]       = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -409,6 +473,29 @@ export default function AdminPage() {
   function cancelEdit() {
     setEditId(null); setExistingPdfPath(null); setExistingPdfName(null)
     setReplacePdf(false); setPdfFile(null); setForm(EMPTY_FORM)
+    setVersionParentId(null)
+  }
+
+  function startNewVersion(a: VersionedAnalysis) {
+    // Pre-fill form with current analysis data
+    setEditId(null) // not editing, creating new
+    setVersionParentId(a.id)
+    setExistingPdfPath(null); setExistingPdfName(null)
+    setReplacePdf(false); setPdfFile(null)
+    setForm({
+      ticker:        a.ticker,
+      title:         a.title,
+      description:   a.description ?? '',
+      rating:        a.rating,
+      sector:        a.sector ?? SECTORS[0].value,
+      analyst:       a.analyst ?? '',
+      current_price: a.current_price != null ? String(a.current_price) : '',
+      price_target:  a.price_target  != null ? String(a.price_target)  : '',
+      category:      (a as any).category ?? 'equity',
+    })
+    setTab('upload')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    showToast('✎ NEUE VERSION — Formular vorausgefüllt. Änderungen vornehmen und publizieren.')
   }
 
   async function handleSave(publish: boolean) {
@@ -450,7 +537,28 @@ export default function AdminPage() {
       ;({ error } = await (supabase as any).from('analyses').update(payload).eq('id', editId))
     } else {
       const { data: { user } } = await supabase.auth.getUser()
-      ;({ error } = await (supabase as any).from('analyses').insert({ ...payload, author_id: user?.id ?? null }))
+      // Calculate version number
+      let version = 1
+      let parent_id = versionParentId ?? null
+      if (versionParentId) {
+        // Find the current version number of parent
+        const parent = analyses.find(a => a.id === versionParentId) as VersionedAnalysis | undefined
+        version = (parent?.version ?? 1) + 1
+      }
+      const { error: insertError } = await (supabase as any).from('analyses').insert({
+        ...payload, author_id: user?.id ?? null, version, parent_id,
+      })
+      error = insertError
+      // Archive the parent analysis
+      if (!insertError && versionParentId) {
+        await (supabase as any).from('analyses')
+          .update({ archived: true, published: false })
+          .eq('id', versionParentId)
+        showToast(`✓ VERSION ${version} PUBLIZIERT — Alte Version archiviert`)
+        setVersionParentId(null)
+        cancelEdit(); loadAnalyses(); setTab('manage')
+        setSaving(false); return
+      }
     }
 
     if (error) {
@@ -567,6 +675,31 @@ export default function AdminPage() {
           {/* UPLOAD / EDIT FORM */}
           {tab === 'upload' && (
             <div style={{ animation: 'fadeIn 0.3s ease' }}>
+
+              {/* New Version Banner */}
+              {versionParentId && (
+                <div style={{
+                  marginBottom: 28,
+                  padding: '16px 24px',
+                  border: '1px solid rgba(201,162,39,0.4)',
+                  background: 'rgba(201,162,39,0.06)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                  <div>
+                    <div style={{ fontSize: 9, letterSpacing: 3, color: 'var(--gold)', textTransform: 'uppercase', marginBottom: 4 }}>
+                      ✎ NEUE VERSION
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--text-dim)', letterSpacing: 1 }}>
+                      Formular vorausgefüllt · Änderungen vornehmen · Beim Publizieren wird die alte Version automatisch archiviert
+                    </div>
+                  </div>
+                  <button onClick={cancelEdit} style={{
+                    fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
+                    background: 'transparent', border: '1px solid var(--border)',
+                    color: 'var(--text-dim)', padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase',
+                  }}>✕ ABBRECHEN</button>
+                </div>
+              )}
 
               {editId && (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', marginBottom: 32, border: '1px solid var(--gold)', background: 'rgba(201,168,76,0.06)' }}>
@@ -722,6 +855,9 @@ export default function AdminPage() {
                   onEdit={startEdit}
                   onToggle={togglePublish}
                   onDelete={deleteAnalysis}
+                  onNewVersion={startNewVersion}
+                  showArchived={showArchived}
+                  onToggleArchived={() => setShowArchived(s => !s)}
                 />
               )}
             </div>

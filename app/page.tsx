@@ -16,6 +16,7 @@ export default function HomePage() {
         .from('analyses')
         .select('*')
         .eq('published', true)
+        .eq('archived', false)
         .order('created_at', { ascending: false })
 
       if (!data) { setLoading(false); return }
@@ -282,7 +283,7 @@ export default function HomePage() {
 
           /* Stats bar — stacked on mobile */
           .stats-bar {
-            flex-direction: row; /* keep row but shrink padding */
+            flex-direction: row;
           }
           .stats-item {
             padding: 14px 12px;
