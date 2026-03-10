@@ -15,21 +15,29 @@ async function fetchYahooChart(symbol: string, interval: string, range: string) 
   const result = json?.chart?.result?.[0]
   if (!result) return null
 
-  const closes     = result.indicators?.quote?.[0]?.close ?? []
-  const timestamps = result.timestamp ?? []
-  const meta       = result.meta ?? {}
+  const closes = result.indicators?.quote?.[0]?.close ?? []
+  const meta   = result.meta ?? {}
 
   const prices: number[] = []
   for (let i = 0; i < closes.length; i++) {
     if (closes[i] != null) prices.push(closes[i])
   }
 
+  // Fallbacks für illiquide Werte (z.B. NLM.F):
+  // currentPrice: regularMarketPrice → letzter Preis im Array → previousClose
+  // prevClose:    chartPreviousClose → previousClose → vorletzter Preis im Array
+  const lastPrice = prices.length > 0 ? prices[prices.length - 1] : null
+  const secondLastPrice = prices.length > 1 ? prices[prices.length - 2] : null
+
+  const prevClose    = meta.chartPreviousClose ?? meta.previousClose ?? secondLastPrice ?? null
+  const currentPrice = meta.regularMarketPrice ?? lastPrice ?? null
+
   return {
     prices,
-    prevClose:    meta.chartPreviousClose ?? meta.previousClose ?? null,
-    currentPrice: meta.regularMarketPrice ?? null,
-    marketState:  meta.marketState        ?? null,
-    currency:     meta.currency           ?? 'EUR',
+    prevClose,
+    currentPrice,
+    marketState: meta.marketState ?? null,
+    currency:    meta.currency    ?? 'EUR',
     symbol,
   }
 }
