@@ -126,7 +126,7 @@ const EMPTY_FORM: FormData = {
 }
 
 // ── Manage List with Filter Tabs ──────────────────────────────────────────────
-function ManageList({ analyses, onEdit, onToggle, onDelete, onNewVersion, showArchived, onToggleArchived }: {
+function ManageList({ analyses, onEdit, onToggle, onDelete, onNewVersion, showArchived, onToggleArchived, onRestore }: {
   analyses: Analysis[]
   onEdit: (a: Analysis) => void
   onToggle: (a: Analysis) => void
@@ -134,6 +134,7 @@ function ManageList({ analyses, onEdit, onToggle, onDelete, onNewVersion, showAr
   onNewVersion: (a: Analysis) => void
   showArchived: boolean
   onToggleArchived: () => void
+  onRestore: (a: Analysis) => void
 }) {
   const [filter, setFilter] = useState<'all' | 'equity' | 'geo' | 'crypto'>('all')
 
@@ -236,6 +237,20 @@ function ManageList({ analyses, onEdit, onToggle, onDelete, onNewVersion, showAr
                         ARCHIVIERT
                       </span>
                     )}
+                {isArchived && (
+                  <button onClick={() => onRestore(a)} style={{
+                    fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: 2,
+                    padding: '6px 14px', border: '1px solid rgba(34,197,94,0.35)',
+                    color: '#22c55e', background: 'rgba(34,197,94,0.06)',
+                    cursor: 'pointer', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.15)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.06)' }}
+                  >
+                    ↺ RESTORE
+                  </button>
+                )}
                     {a.sector && <><span>·</span><span>{a.sector}</span></>}
                     <span>{a.pdf_path ? '· PDF ✓' : '· No PDF'}</span>
                   </div>
@@ -592,6 +607,17 @@ export default function AdminPage() {
     }
   }
 
+  async function restoreAnalysis(a: Analysis) {
+    const { error } = await (supabase as any)
+      .from('analyses')
+      .update({ archived: false, published: false })
+      .eq('id', a.id)
+    if (!error) {
+      setAnalyses(prev => prev.map(x => x.id === a.id ? { ...x, archived: false, published: false } : x))
+      showToast('✓ WIEDERHERGESTELLT — als Draft gesetzt')
+    }
+  }
+
   async function logout() { await supabase.auth.signOut(); router.replace('/') }
 
   const F = (key: keyof FormData) => ({
@@ -858,6 +884,7 @@ export default function AdminPage() {
                   onNewVersion={startNewVersion}
                   showArchived={showArchived}
                   onToggleArchived={() => setShowArchived(s => !s)}
+                  onRestore={restoreAnalysis}
                 />
               )}
             </div>
