@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Analysis = {
@@ -323,6 +324,116 @@ function fmt(n: number) {
   return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
+// ─── 6M Chart hook ───────────────────────────────────────────────────────────
+function useChartData(ticker: string, category: string) {
+  const [points, setPoints] = useState<{ v: number }[] | null>(null)
+  const [trend, setTrend]   = useState<'up' | 'down' | 'flat'>('flat')
+
+  useEffect(() => {
+    if (!ticker || category === 'geo') return
+    let cancelled = false
+    fetch(`/api/chart?ticker=${encodeURIComponent(ticker)}`)
+      .then(r => r.json())
+      .then(d => {
+        if (cancelled || !Array.isArray(d.prices) || d.prices.length < 2) return
+        const pts = (d.prices as number[]).map(v => ({ v }))
+        const first = pts[0].v, last = pts[pts.length - 1].v
+        setPoints(pts)
+        setTrend(last > first * 1.002 ? 'up' : last < first * 0.998 ? 'down' : 'flat')
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [ticker, category])
+
+  return { points, trend }
+}
+
+// ─── Mini Chart Component ────────────────────────────────────────────────────
+function MiniChart({ ticker, category, rating }: { ticker: string; category: string; rating: string }) {
+  const { points, trend } = useChartData(ticker, category)
+
+  if (!points || category === 'geo') return null
+
+  const COLORS = {
+    up:   { stroke: '#22c55e', fill: '#22c55e' },
+    down: { stroke: '#ef4444', fill: '#ef4444' },
+    flat: { stroke: '#c9a227', fill: '#c9a227' },
+  }
+  const col = COLORS[trend]
+
+  const pct = points.length >= 2
+    ? (((points[points.length - 1].v - points[0].v) / points[0].v) * 100).toFixed(1)
+    : null
+
+  return (
+    <div style={{
+      background: '#0c1628',
+      borderBottom: '1px solid #1e2e48',
+      padding: '0 0 0 0',
+      position: 'relative',
+      height: 68,
+    }}>
+      {/* 6M label */}
+      <div style={{
+        position: 'absolute', top: 7, left: 14, zIndex: 2,
+        fontFamily: "'DM Mono', monospace",
+        fontSize: 7, letterSpacing: 2.5,
+        color: 'rgba(255,255,255,0.3)',
+        textTransform: 'uppercase',
+      }}>
+        6M
+      </div>
+      {/* Performance badge */}
+      {pct !== null && (
+        <div style={{
+          position: 'absolute', top: 7, right: 12, zIndex: 2,
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 9, letterSpacing: 1,
+          color: col.stroke,
+          fontWeight: 500,
+        }}>
+          {Number(pct) >= 0 ? '+' : ''}{pct}%
+        </div>
+      )}
+      <ResponsiveContainer width="100%" height={68}>
+        <AreaChart data={points} margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
+          <defs>
+            <linearGradient id={`cg-${ticker}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor={col.fill} stopOpacity={0.22} />
+              <stop offset="95%" stopColor={col.fill} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <Area
+            type="monotone"
+            dataKey="v"
+            stroke={col.stroke}
+            strokeWidth={1.5}
+            fill={`url(#cg-${ticker})`}
+            dot={false}
+            isAnimationActive={true}
+            animationDuration={800}
+          />
+          <Tooltip
+            content={({ active, payload }) => {
+              if (!active || !payload?.length) return null
+              return (
+                <div style={{
+                  background: '#0c1628', border: '1px solid #1e2e48',
+                  padding: '4px 8px',
+                  fontFamily: "'DM Mono', monospace",
+                  fontSize: 9, color: col.stroke, letterSpacing: 1,
+                }}>
+                  €{fmt(payload[0].value as number)}
+                </div>
+              )
+            }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
 // ─── Single Card ──────────────────────────────────────────────────────────────
 function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
   const [imgError, setImgError] = useState(false)
@@ -423,6 +534,8 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
           {a.sector && <div className="ac-sector-lbl">{a.sector}</div>}
         </div>
       </div>
+
+      <MiniChart ticker={a.ticker} category={cat} rating={a.rating} />
 
       {(cat === 'equity' || cat === 'crypto') && (displayPrice || a.price_target) && (
         <div className="ac-prices">
