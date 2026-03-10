@@ -1,50 +1,58 @@
 // app/api/chart/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 
-export const revalidate = 3600
+export const runtime = 'edge'
 
-const VALID_INTERVALS = ['1d', '1wk', '1mo']
-const VALID_RANGES    = ['1mo', '3mo', '6mo', '1y', '2y']
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+
+async function fetchYahooChart(symbol: string, interval: string, range: string) {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}`
+  const res = await fetch(url, {
+    headers: { 'User-Agent': UA, Accept: 'application/json' },
+  })
+  if (!res.ok) return null
+  const json = await res.json()
+  const result = json?.chart?.result?.[0]
+  if (!result) return null
+
+  const closes     = result.indicators?.quote?.[0]?.close ?? []
+  const timestamps = result.timestamp ?? []
+  const meta       = result.meta ?? {}
+
+  const prices: number[] = []
+  for (let i = 0; i < closes.length; i++) {
+    if (closes[i] != null) prices.push(closes[i])
+  }
+
+  return {
+    prices,
+    prevClose:    meta.chartPreviousClose ?? meta.previousClose ?? null,
+    currentPrice: meta.regularMarketPrice ?? null,
+    marketState:  meta.marketState        ?? null,
+    currency:     meta.currency           ?? 'EUR',
+    symbol,
+  }
+}
 
 export async function GET(req: NextRequest) {
-  const ticker   = req.nextUrl.searchParams.get('ticker')
+  const ticker   = req.nextUrl.searchParams.get('ticker')   ?? ''
   const interval = req.nextUrl.searchParams.get('interval') ?? '1wk'
   const range    = req.nextUrl.searchParams.get('range')    ?? '6mo'
 
-  if (!ticker) return NextResponse.json({ error: 'missing ticker' }, { status: 400 })
-  if (!VALID_INTERVALS.includes(interval)) return NextResponse.json({ error: 'invalid interval' }, { status: 400 })
-  if (!VALID_RANGES.includes(range))       return NextResponse.json({ error: 'invalid range' },    { status: 400 })
+  if (!ticker) return NextResponse.json({ error: 'Missing ticker' }, { status: 400 })
 
-  const yahooTicker = ticker.includes('.') ? ticker : `${ticker}.DE`
+  // Auto-suffix for German stocks
+  const alreadyHasSuffix = ticker.includes('.')
+  const candidates = alreadyHasSuffix ? [ticker] : [`${ticker}.DE`, ticker, `${ticker}.F`]
 
-  try {
-    const url =
-      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooTicker)}` +
-      `?interval=${interval}&range=${range}`
-
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-      next: { revalidate: 3600 },
-    })
-
-    if (!res.ok) {
-      return NextResponse.json({ error: `Yahoo returned ${res.status}` }, { status: 502 })
+  for (const sym of candidates) {
+    const data = await fetchYahooChart(sym, interval, range)
+    if (data && data.prices.length > 1) {
+      return NextResponse.json(data, {
+        headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30' },
+      })
     }
-
-    const json = await res.json()
-    const closes: number[] | undefined =
-      json?.chart?.result?.[0]?.indicators?.quote?.[0]?.close
-
-    if (!closes || closes.length < 2) {
-      return NextResponse.json({ error: 'no data' }, { status: 404 })
-    }
-
-    const prices = closes.filter((v): v is number => v != null)
-
-    return NextResponse.json({ prices }, {
-      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' },
-    })
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
   }
+
+  return NextResponse.json({ error: `No chart data for ${ticker}` }, { status: 404 })
 }

@@ -325,8 +325,9 @@ function fmt(n: number) {
 }
 
 // ─── Chart hook (range-aware) ─────────────────────────────────────────────────
-type Range = '3M' | '6M' | '1Y'
+type Range = '1D' | '3M' | '6M' | '1Y'
 const RANGE_PARAMS: Record<Range, { interval: string; range: string }> = {
+  '1D': { interval: '5m',  range: '1d'  },
   '3M': { interval: '1wk', range: '3mo' },
   '6M': { interval: '1wk', range: '6mo' },
   '1Y': { interval: '1mo', range: '1y'  },
@@ -362,7 +363,7 @@ function useChartData(ticker: string, category: string, range: Range) {
 
 // ─── Mini Chart Component ────────────────────────────────────────────────────
 function MiniChart({ ticker, category }: { ticker: string; category: string }) {
-  const [range, setRange] = useState<Range>('6M')
+  const [range, setRange] = useState<Range>('1D')
   const { points, trend, loading } = useChartData(ticker, category, range)
 
   if (category === 'geo') return null
@@ -403,7 +404,7 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
       }}>
         {/* Range toggle */}
         <div style={{ display: 'flex', gap: 2 }}>
-          {(['3M', '6M', '1Y'] as Range[]).map(r => (
+          {(['1D', '3M', '6M', '1Y'] as Range[]).map(r => (
             <button
               key={r}
               onClick={() => setRange(r)}
