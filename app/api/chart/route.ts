@@ -1,15 +1,18 @@
 // app/api/chart/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 
-export const revalidate = 3600 // cache 1h — daily chart data doesn't need to be fresher
+export const revalidate = 3600
 
 export async function GET(req: NextRequest) {
   const ticker = req.nextUrl.searchParams.get('ticker')
   if (!ticker) return NextResponse.json({ error: 'missing ticker' }, { status: 400 })
 
+  // Automatisch .DE anhängen wenn kein Exchange-Suffix vorhanden
+  const yahooTicker = ticker.includes('.') ? ticker : `${ticker}.DE`
+
   try {
     const url =
-      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}` +
+      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooTicker)}` +
       `?interval=1wk&range=6mo`
 
     const res = await fetch(url, {
@@ -29,7 +32,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'no data' }, { status: 404 })
     }
 
-    // Remove null entries (halted trading weeks) and return clean array
     const prices = closes.filter((v): v is number => v != null)
 
     return NextResponse.json({ prices }, {
