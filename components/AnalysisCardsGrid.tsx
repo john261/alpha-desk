@@ -339,7 +339,11 @@ function useChartData(ticker: string, category: string, range: Range) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!ticker || category === 'geo') return
+    if (!ticker || category === 'geo' || range === '1D') {
+      setLoading(false)
+      setPoints(null)
+      return
+    }
     let cancelled = false
     setLoading(true)
     setPoints(null)
@@ -363,10 +367,13 @@ function useChartData(ticker: string, category: string, range: Range) {
 
 // ─── Mini Chart Component ────────────────────────────────────────────────────
 function MiniChart({ ticker, category }: { ticker: string; category: string }) {
-  const [range, setRange] = useState<Range>('1D')
+  const [range, setRange] = useState<Range>('6M')
   const { points, trend, loading } = useChartData(ticker, category, range)
 
   if (category === 'geo') return null
+
+  // Wenn Daten fehlen (und nicht 1D wo wir absichtlich keinen Chart zeigen): ausblenden
+  if (!loading && !points && range !== '1D') return null
 
   const COLORS = {
     up:   { stroke: '#22c55e', glow: 'rgba(34,197,94,0.18)' },
@@ -380,14 +387,18 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
     : null
   const isUp = Number(pct) >= 0
 
+  // Bei 1D: nur Tabs + % anzeigen, keine Chartlinie
+  const showChart = range !== '1D'
+
   return (
     <div style={{
       background: '#111e33',
       borderTop: '2px solid #1e2e48',
       borderBottom: '1px solid #1a2a42',
       position: 'relative',
-      height: 120,
+      height: showChart ? 120 : 44,
       overflow: 'hidden',
+      transition: 'height 0.25s ease',
     }}>
       {/* glow */}
       <div style={{
@@ -450,61 +461,63 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
         )}
       </div>
 
-      {/* Chart or skeleton */}
-      {loading || !points ? (
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0,
-          height: 85, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+      {/* Chart oder Skeleton – nur wenn nicht 1D */}
+      {showChart && (
+        loading ? (
           <div style={{
-            width: '88%', height: 2, borderRadius: 2,
-            background: 'linear-gradient(90deg, #1a2a42 25%, #243550 50%, #1a2a42 75%)',
-            backgroundSize: '200% 100%',
-            animation: 'shimmer 1.4s ease infinite',
-          }} />
-        </div>
-      ) : (
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 90 }}>
-          <ResponsiveContainer width="100%" height={90}>
-            <AreaChart data={points} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
-              <defs>
-                <linearGradient id={`cg-${ticker}-${range}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%"  stopColor={col.stroke} stopOpacity={0.22} />
-                  <stop offset="100%" stopColor={col.stroke} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area
-                type="monotone"
-                dataKey="v"
-                stroke={col.stroke}
-                strokeWidth={2}
-                fill={`url(#cg-${ticker}-${range})`}
-                dot={false}
-                isAnimationActive={true}
-                animationDuration={600}
-                animationEasing="ease-out"
-              />
-              <Tooltip
-                cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1, strokeDasharray: '3 3' }}
-                content={({ active, payload }) => {
-                  if (!active || !payload?.length) return null
-                  return (
-                    <div style={{
-                      background: '#0c1628',
-                      border: `1px solid ${col.stroke}55`,
-                      padding: '4px 9px',
-                      fontFamily: "'DM Mono', monospace",
-                      fontSize: 9, color: col.stroke, letterSpacing: 1,
-                      boxShadow: `0 4px 16px rgba(0,0,0,0.5)`,
-                    }}>
-                      €{fmt(payload[0].value as number)}
-                    </div>
-                  )
-                }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+            position: 'absolute', bottom: 0, left: 0, right: 0,
+            height: 85, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              width: '88%', height: 2, borderRadius: 2,
+              background: 'linear-gradient(90deg, #1a2a42 25%, #243550 50%, #1a2a42 75%)',
+              backgroundSize: '200% 100%',
+              animation: 'shimmer 1.4s ease infinite',
+            }} />
+          </div>
+        ) : points ? (
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 90 }}>
+            <ResponsiveContainer width="100%" height={90}>
+              <AreaChart data={points} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
+                <defs>
+                  <linearGradient id={`cg-${ticker}-${range}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"  stopColor={col.stroke} stopOpacity={0.22} />
+                    <stop offset="100%" stopColor={col.stroke} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <Area
+                  type="monotone"
+                  dataKey="v"
+                  stroke={col.stroke}
+                  strokeWidth={2}
+                  fill={`url(#cg-${ticker}-${range})`}
+                  dot={false}
+                  isAnimationActive={true}
+                  animationDuration={600}
+                  animationEasing="ease-out"
+                />
+                <Tooltip
+                  cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1, strokeDasharray: '3 3' }}
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null
+                    return (
+                      <div style={{
+                        background: '#0c1628',
+                        border: `1px solid ${col.stroke}55`,
+                        padding: '4px 9px',
+                        fontFamily: "'DM Mono', monospace",
+                        fontSize: 9, color: col.stroke, letterSpacing: 1,
+                        boxShadow: `0 4px 16px rgba(0,0,0,0.5)`,
+                      }}>
+                        €{fmt(payload[0].value as number)}
+                      </div>
+                    )
+                  }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : null
       )}
     </div>
   )
