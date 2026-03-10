@@ -334,25 +334,27 @@ const RANGE_PARAMS: Record<Range, { interval: string; range: string }> = {
 }
 
 function useChartData(ticker: string, category: string, range: Range) {
-  const [points, setPoints] = useState<{ v: number }[] | null>(null)
-  const [trend, setTrend]   = useState<'up' | 'down' | 'flat'>('flat')
-  const [loading, setLoading] = useState(true)
+  const [points, setPoints]       = useState<{ v: number }[] | null>(null)
+  const [trend, setTrend]         = useState<'up' | 'down' | 'flat'>('flat')
+  const [loading, setLoading]     = useState(true)
+  const [dayChange, setDayChange] = useState<number | null>(null)
 
   useEffect(() => {
-    if (!ticker || category === 'geo' || range === '1D') {
-      setLoading(false)
-      setPoints(null)
-      return
-    }
+    if (!ticker || category === 'geo') { setLoading(false); return }
     let cancelled = false
     setLoading(true)
     setPoints(null)
+    setDayChange(null)
     const { interval, range: r } = RANGE_PARAMS[range]
     fetch(`/api/chart?ticker=${encodeURIComponent(ticker)}&interval=${interval}&range=${r}`)
       .then(res => res.json())
       .then(d => {
-        if (cancelled || !Array.isArray(d.prices) || d.prices.length < 2) return
-        const pts = (d.prices as number[]).map(v => ({ v }))
+        if (cancelled) return
+        if (d.prevClose != null && d.currentPrice != null && d.prevClose > 0) {
+          setDayChange(((d.currentPrice - d.prevClose) / d.prevClose) * 100)
+        }
+        if (range === '1D' || !Array.isArray(d.prices) || d.prices.length < 2) return
+        const pts = (d.prices as number[]).map((v: number) => ({ v }))
         const first = pts[0].v, last = pts[pts.length - 1].v
         setPoints(pts)
         setTrend(last > first * 1.002 ? 'up' : last < first * 0.998 ? 'down' : 'flat')
@@ -362,17 +364,17 @@ function useChartData(ticker: string, category: string, range: Range) {
     return () => { cancelled = true }
   }, [ticker, category, range])
 
-  return { points, trend, loading }
+  return { points, trend, loading, dayChange }
 }
 
 // ─── Mini Chart Component ────────────────────────────────────────────────────
 function MiniChart({ ticker, category }: { ticker: string; category: string }) {
   const [range, setRange] = useState<Range>('6M')
-  const { points, trend, loading } = useChartData(ticker, category, range)
+  const { points, trend, loading, dayChange } = useChartData(ticker, category, range)
 
   if (category === 'geo') return null
 
-  // Wenn Daten fehlen (und nicht 1D wo wir absichtlich keinen Chart zeigen): ausblenden
+  // Wenn Daten fehlen (und nicht 1D): ausblenden
   if (!loading && !points && range !== '1D') return null
 
   const COLORS = {
@@ -380,14 +382,17 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
     down: { stroke: '#f87171', glow: 'rgba(248,113,113,0.14)' },
     flat: { stroke: '#c9a227', glow: 'rgba(201,162,39,0.14)' },
   }
-  const col = COLORS[trend]
+
+  // Für 1D: Farbe anhand dayChange bestimmen
+  const dayTrend = dayChange == null ? 'flat' : dayChange > 0.2 ? 'up' : dayChange < -0.2 ? 'down' : 'flat'
+  const col = range === '1D' ? COLORS[dayTrend] : COLORS[trend]
 
   const pct = points && points.length >= 2
     ? (((points[points.length - 1].v - points[0].v) / points[0].v) * 100).toFixed(1)
     : null
   const isUp = Number(pct) >= 0
 
-  // Bei 1D: nur Tabs + % anzeigen, keine Chartlinie
+  // Bei 1D: nur Tabs + Tagesperformance-Badge, keine Chartlinie
   const showChart = range !== '1D'
 
   return (
@@ -436,8 +441,38 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
           ))}
         </div>
 
-        {/* Performance */}
-        {pct !== null && !loading && (
+        {/* Performance: bei 1D → Tages-Badge, sonst Periodenperformance */}
+        {loading ? (
+          <div style={{
+            width: 48, height: 10, borderRadius: 3,
+            background: 'linear-gradient(90deg, #1a2a42 25%, #243550 50%, #1a2a42 75%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 1.4s ease infinite',
+          }} />
+        ) : range === '1D' && dayChange != null ? (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+          }}>
+            <div style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 7, letterSpacing: 2, color: 'rgba(255,255,255,0.35)',
+              textTransform: 'uppercase',
+            }}>HEUTE</div>
+            <div style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 11, letterSpacing: 0.5,
+              color: col.stroke, fontWeight: 700,
+              display: 'flex', alignItems: 'center', gap: 3,
+              background: `${col.stroke}18`,
+              border: `1px solid ${col.stroke}40`,
+              padding: '2px 7px',
+              borderRadius: 2,
+            }}>
+              <span style={{ fontSize: 8 }}>{dayChange >= 0 ? '▲' : '▼'}</span>
+              {dayChange >= 0 ? '+' : ''}{dayChange.toFixed(2)}%
+            </div>
+          </div>
+        ) : pct !== null ? (
           <div style={{
             fontFamily: "'DM Mono', monospace",
             fontSize: 11, letterSpacing: 0.5,
@@ -448,17 +483,7 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
             <span style={{ fontSize: 8 }}>{isUp ? '▲' : '▼'}</span>
             {isUp ? '+' : ''}{pct}%
           </div>
-        )}
-
-        {/* Loading shimmer for pct */}
-        {loading && (
-          <div style={{
-            width: 48, height: 10, borderRadius: 3,
-            background: 'linear-gradient(90deg, #1a2a42 25%, #243550 50%, #1a2a42 75%)',
-            backgroundSize: '200% 100%',
-            animation: 'shimmer 1.4s ease infinite',
-          }} />
-        )}
+        ) : null}
       </div>
 
       {/* Chart oder Skeleton – nur wenn nicht 1D */}
