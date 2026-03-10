@@ -620,6 +620,18 @@ export default function AdminPage() {
 
   async function logout() { await supabase.auth.signOut(); router.replace('/') }
 
+  // ── Theme toggle ──
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('ad-theme') as 'dark' | 'light') ?? 'dark'
+    }
+    return 'dark'
+  })
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('ad-theme', theme)
+  }, [theme])
+
   const F = (key: keyof FormData) => ({
     value: form[key],
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
@@ -639,15 +651,47 @@ export default function AdminPage() {
   return (
     <>
       <style>{`
+        :root, [data-theme="dark"] {
+          --bg:       #080d1a;
+          --bg2:      #0d1220;
+          --bg3:      #111827;
+          --border:   rgba(255,255,255,0.08);
+          --text:     #e8e6e0;
+          --text-dim: rgba(255,255,255,0.35);
+          --gold:     #c9a227;
+          --gold2:    #c9a84c;
+          --green:    #4ec994;
+          --red:      #e05555;
+        }
+        [data-theme="light"] {
+          --bg:       #f4f1eb;
+          --bg2:      #ede9e0;
+          --bg3:      #e5e0d4;
+          --border:   rgba(0,0,0,0.1);
+          --text:     #1a1a2e;
+          --text-dim: rgba(0,0,0,0.4);
+          --gold:     #a07c10;
+          --gold2:    #b08920;
+          --green:    #166534;
+          --red:      #b91c1c;
+        }
         @keyframes fadeIn  { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
         @keyframes toastIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
         input[type=number]::-webkit-inner-spin-button { -webkit-appearance:none }
-        .row-hover:hover { background: rgba(255,255,255,0.03) !important; }
+        .row-hover:hover { background: rgba(0,0,0,0.04) !important; }
+        [data-theme="dark"] .row-hover:hover { background: rgba(255,255,255,0.03) !important; }
         .focus-gold:focus { border-color: var(--gold) !important; }
         .btn-edit:hover { border-color: var(--gold) !important; color: var(--gold) !important; }
         .cat-btn { transition: all .2s ease; }
         .cat-btn:hover { opacity: 1 !important; }
-        select option { background: #0d1220; }
+        select option { background: var(--bg2); color: var(--text); }
+        [data-theme="light"] select { background: var(--bg2); color: var(--text); }
+        [data-theme="light"] input, [data-theme="light"] textarea {
+          background: rgba(0,0,0,0.04) !important;
+          color: var(--text) !important;
+        }
+        /* smooth theme transition */
+        *, *::before, *::after { transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease; }
       `}</style>
 
       <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', zIndex: 0 }} />
@@ -656,13 +700,25 @@ export default function AdminPage() {
       <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh', animation: 'fadeIn 0.4s ease' }}>
 
         {/* NAV */}
-        <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 48px', borderBottom: '1px solid var(--border)', background: 'rgba(8,13,26,0.97)', backdropFilter: 'blur(20px)', position: 'sticky', top: 0, zIndex: 50 }}>
+        <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 48px', borderBottom: '1px solid var(--border)', background: 'var(--bg2)', backdropFilter: 'blur(20px)', position: 'sticky', top: 0, zIndex: 50 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
             <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 20, letterSpacing: 4, color: 'var(--gold)' }}>ALPHA DESK</div>
             <div style={{ fontSize: 9, letterSpacing: 3, color: 'var(--text-dim)', border: '1px solid var(--border)', padding: '4px 10px' }}>ADMIN CONSOLE</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
             <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>{userEmail}</span>
+            {/* Theme Toggle */}
+            <button onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} style={{
+              fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: 2,
+              background: 'transparent', border: '1px solid var(--border)',
+              color: 'var(--text-dim)', padding: '6px 14px', cursor: 'pointer',
+              textTransform: 'uppercase', transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { (e.target as any).style.borderColor = 'var(--gold)'; (e.target as any).style.color = 'var(--gold)' }}
+            onMouseLeave={e => { (e.target as any).style.borderColor = 'var(--border)'; (e.target as any).style.color = 'var(--text-dim)' }}
+            >
+              {theme === 'dark' ? '☀ LIGHT' : '☽ DARK'}
+            </button>
             <a href="/" style={{ fontSize: 10, letterSpacing: 2, color: 'var(--text-dim)', textDecoration: 'none', padding: '6px 14px', border: '1px solid var(--border)', textTransform: 'uppercase' }}>← SITE</a>
             <button onClick={logout} style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: 2, background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)', padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase' }}
               onMouseEnter={e => { (e.target as any).style.borderColor = 'var(--red)'; (e.target as any).style.color = 'var(--red)' }}
