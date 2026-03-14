@@ -987,20 +987,30 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
       `}</style>
 
       {/* ── Filter Tabs ── */}
-      <div className="ac-tabs">
-        {TABS.map(t => (
-          <button
-            key={t.key}
-            className={"ac-tab" + (activeTab === t.key ? " ac-tab-active" : "")}
-            style={{
-              '--tab-color': t.color,
-            } as React.CSSProperties}
-            onClick={() => setActiveTab(t.key)}
-          >
-            {t.label}
-            <span className="ac-tab-count">({counts[t.key]})</span>
-          </button>
-        ))}
+      <div className="ac-tabs" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {TABS.map(t => (
+            <button
+              key={t.key}
+              className={"ac-tab" + (activeTab === t.key ? " ac-tab-active" : "")}
+              style={{
+                '--tab-color': t.color,
+              } as React.CSSProperties}
+              onClick={() => setActiveTab(t.key)}
+            >
+              {t.label}
+              <span className="ac-tab-count">({counts[t.key]})</span>
+            </button>
+          ))}
+        </div>
+        <a
+          href="https://finanzbot-production.up.railway.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ac-btn"
+        >
+          <span>📊</span> AKTIEN ANALYSIEREN
+        </a>
       </div>
 
       <div className="ac-grid">
