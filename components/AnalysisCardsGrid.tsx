@@ -741,20 +741,6 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
 // ─── Grid ─────────────────────────────────────────────────────────────────────
 export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }) {
   const [activeTab, setActiveTab] = useState<'all' | 'equity' | 'geo' | 'crypto'>('all')
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-
-  useEffect(() => {
-    import('@/lib/supabase/client').then(({ createClient }) => {
-      const supabase = createClient()
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setIsAuthenticated(!!session)
-      })
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setIsAuthenticated(!!session)
-      })
-      return () => subscription.unsubscribe()
-    })
-  }, [])
 
   const counts = {
     all:    analyses.length,
@@ -1001,7 +987,7 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
       `}</style>
 
       {/* ── Filter Tabs ── */}
-      <div className="ac-tabs" style={{ justifyContent: 'flex-start', alignItems: 'center' }}>
+      <div className="ac-tabs" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: 6 }}>
           {TABS.map(t => (
             <button
@@ -1017,51 +1003,15 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
             </button>
           ))}
         </div>
+        <a
+          href="https://finanzbot-production.up.railway.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ac-btn"
+        >
+          <span>📊</span> AKTIEN ANALYSIEREN
+        </a>
       </div>
-
-      {/* ── CTA Banner (nur für eingeloggte User) ── */}
-      {isAuthenticated && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: 'linear-gradient(135deg, #0a1628 0%, #131d35 100%)',
-          border: '1px solid rgba(201,162,39,0.3)',
-          padding: '16px 24px',
-          marginBottom: 28,
-        }}>
-          <div>
-            <div style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: 18,
-              fontWeight: 600,
-              color: '#e8e6e0',
-              letterSpacing: 1,
-            }}>
-              KI-gestützte Aktienanalyse
-            </div>
-            <div style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 9,
-              letterSpacing: 2,
-              color: 'rgba(255,255,255,0.35)',
-              textTransform: 'uppercase' as const,
-              marginTop: 4,
-            }}>
-              Scoring · Levermann · Piotroski · DCF · RSI/MACD
-            </div>
-          </div>
-          <a
-            href="https://finanzbot-production.up.railway.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ac-btn"
-            style={{ flexShrink: 0, marginLeft: 24 }}
-          >
-            <span>📊</span> AKTIEN ANALYSIEREN
-          </a>
-        </div>
-      )}
 
       <div className="ac-grid">
         {filtered.length === 0 ? (
