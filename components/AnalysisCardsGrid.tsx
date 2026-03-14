@@ -741,6 +741,20 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
 // ─── Grid ─────────────────────────────────────────────────────────────────────
 export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }) {
   const [activeTab, setActiveTab] = useState<'all' | 'equity' | 'geo' | 'crypto'>('all')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    import('@/lib/supabase/client').then(({ createClient }) => {
+      const supabase = createClient()
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setIsAuthenticated(!!session)
+      })
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setIsAuthenticated(!!session)
+      })
+      return () => subscription.unsubscribe()
+    })
+  }, [])
 
   const counts = {
     all:    analyses.length,
