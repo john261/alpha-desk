@@ -1004,7 +1004,7 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
           ))}
         </div>
         <a
-          href="https://finanzbot.streamlit.app"
+          href="https://john261-finanzbot-bot.streamlit.app"
           target="_blank"
           rel="noopener noreferrer"
           className="ac-btn"
