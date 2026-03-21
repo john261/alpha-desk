@@ -58,100 +58,70 @@ function useRealtimePrice(ticker: string, priceTarget: number | null | undefined
 }
 
 // ─── Exaktes Sektor → Bild Mapping ───────────────────────────────────────────
-// Jeder Sektor aus dem Dropdown bekommt sein eigenes, visuell einzigartiges Bild.
 const SECTOR_IMAGE_MAP: Record<string, string> = {
-  // Technologie — blaue Platine/Circuit
   'Technologie':
     'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&fit=crop',
-  // Software & IT — Code auf Monitor
   'Software & IT':
     'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=700&q=80&fit=crop',
-  // Halbleiter — Chip Nahaufnahme
   'Halbleiter':
     'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=700&q=80&fit=crop',
-  // Automobil & OEM — Autofabrik/Produktion
   'Automobil & OEM':
     'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=700&q=80&fit=crop',
   'Automobil':
     'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=700&q=80&fit=crop',
-  // Autovermietung & Mobilität — Fahrzeugflotte/Parkhaus
   'Autovermietung & Mobilität':
     'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=80&fit=crop',
-  // Versicherung — Schirm/Schutz
   'Versicherung':
     'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=700&q=80&fit=crop',
-  // Banken & Finanzen — Frankfurter Skyline/Bankenviertel
   'Banken & Finanzen':
     'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80&fit=crop',
-  // Immobilien — modernes Gebäude
   'Immobilien':
     'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=700&q=80&fit=crop',
-  // Energie & Utilities — Kraftwerk/Turbinen
   'Energie & Utilities':
     'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=700&q=80&fit=crop',
-  // Erneuerbare Energien — Windräder
   'Erneuerbare Energien':
     'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=700&q=80&fit=crop',
-  // Pharma & Biotech — Labor/Reagenzgläser blau
   'Pharma & Biotech':
     'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=700&q=80&fit=crop',
-  // Medizintechnik — MRT/med. Gerät
   'Medizintechnik':
     'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80&fit=crop',
-  // Konsumgüter & Handel — Supermarkt/Regal
   'Konsumgüter & Handel':
     'https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&q=80&fit=crop',
-  // Lebensmittel & Getränke — Markt/frische Produkte
   'Lebensmittel & Getränke':
     'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700&q=80&fit=crop',
-  // Industrie & Maschinenbau — Fabrikhalle
   'Industrie & Maschinenbau':
     'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=700&q=80&fit=crop',
-  // Chemie & Werkstoffe — Reagenzgläser orange/warm
   'Chemie & Werkstoffe':
     'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80&fit=crop',
-  // Telekommunikation — Antennen/Masten
   'Telekommunikation':
     'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&q=80&fit=crop',
-  // Medien & Entertainment — Kamera/Studio
   'Medien & Entertainment':
     'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=700&q=80&fit=crop',
-  // Transport & Logistik — Containerschiff/Hafen
   'Transport & Logistik':
     'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=700&q=80&fit=crop',
-  // Luft- & Raumfahrt — Flugzeug/Cockpit
   'Luft- & Raumfahrt':
     'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=700&q=80&fit=crop',
-  // Rüstung & Defense — Militär/Defense
   'Rüstung & Defense':
     'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=700&q=80&fit=crop',
-  // Rohstoffe & Bergbau — Bergwerk/Mine
   'Rohstoffe & Bergbau':
     'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=700&q=80&fit=crop',
-  // E-Commerce & Plattformen — Online Shopping/Pakete
   'E-Commerce & Plattformen':
     'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=700&q=80&fit=crop',
-  // Luxury & Fashion — Luxusgüter
   'Luxury & Fashion':
     'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=700&q=80&fit=crop',
-  // Gaming & Esports — Controller/Screen
   'Gaming & Esports':
     'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=700&q=80&fit=crop',
-  // Künstliche Intelligenz — KI/Neural Network
   'Künstliche Intelligenz':
     'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=700&q=80&fit=crop',
-  // Krypto & Blockchain — Bitcoin/Digital
   'Krypto & Blockchain':
     'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=700&q=80&fit=crop',
-  // Agrar & Forst — Felder/Landwirtschaft
   'Agrar & Forst':
     'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=700&q=80&fit=crop',
-  // Sonstiges — Allgemein/Markt
   'Sonstiges':
     'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop',
 }
 
-// ─── Geopolitik-Kategorie Bilder (nach Themenbereich) ────────────────────────
+// ─── Geopolitik-Kategorie Bilder ──────────────────────────────────────────────
 const GEO_IMAGE_MAP: Record<string, string> = {
   'USA & Fed-Politik':
     'https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=700&q=80&fit=crop',
@@ -181,10 +151,8 @@ const GEO_IMAGE_MAP: Record<string, string> = {
     'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=700&q=80&fit=crop',
 }
 
-// Fallback
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&fit=crop'
 
-// Fuzzy Fallback fuer alte Freitext-Sektoren (rueckwaertskompatibel)
 const FUZZY_FALLBACK: [string, string][] = [
   ['mobil',        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=80&fit=crop'],
   ['mietwagen',    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=80&fit=crop'],
@@ -247,13 +215,11 @@ function getCardImage(a: Analysis): string {
   }
 
   if (category === 'crypto') {
-    return '' // handled via getCryptoBrand
+    return ''
   }
 
-  // 1. Exaktes Matching auf Dropdown-Wert (neue Analysen)
   if (SECTOR_IMAGE_MAP[sector]) return SECTOR_IMAGE_MAP[sector]
 
-  // 2. Fuzzy Fallback fuer alte Freitext-Sektoren
   const sNorm = normalize(sector)
   const tNorm = normalize(a.title ?? '')
   for (const [key, url] of FUZZY_FALLBACK) {
@@ -272,7 +238,6 @@ const RATING_CFG = {
   WATCH: { bg: '#334155', text: '#e2e8f0', icon: '◎' },
 } as const
 
-// Kategorie-Farben für Badge
 const CAT_COLORS: Record<string, string> = {
   equity: '#c9a227',
   geo:    '#38bdf8',
@@ -284,7 +249,7 @@ const CAT_LABELS: Record<string, string> = {
   crypto: 'Digital Assets',
 }
 
-// ─── Crypto Brand Colors & Logos ─────────────────────────────────────────────
+// ─── Crypto Brand Colors & Logos ──────────────────────────────────────────────
 const CRYPTO_BRAND: Record<string, { gradient: string; logo: string }> = {
   'Bitcoin (BTC)':        { gradient: 'linear-gradient(135deg,#1a0a00 0%,#3d1f00 40%,#7a3d00 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/btc.png' },
   'Ethereum (ETH)':       { gradient: 'linear-gradient(135deg,#0d0d2b 0%,#1a1a4e 40%,#2d2d8f 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/eth.png' },
@@ -306,7 +271,6 @@ const CRYPTO_BRAND: Record<string, { gradient: string; logo: string }> = {
   'Stellar (XLM)':        { gradient: 'linear-gradient(135deg,#001626 0%,#003359 40%,#0088cc 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/xlm.png' },
   'Cosmos (ATOM)':        { gradient: 'linear-gradient(135deg,#050810 0%,#0e1228 40%,#2e3148 100%)', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa/128/color/atom.png' },
   'Sui (SUI)':            { gradient: 'linear-gradient(135deg,#001226 0%,#002b59 40%,#1a66cc 100%)', logo: 'https://assets.coingecko.com/coins/images/26375/small/sui-ocean-square.png' },
-  // Themenbereiche
   'Layer 1 Protokolle':   { gradient: 'linear-gradient(135deg,#0a0a1a 0%,#1a1a3d 100%)', logo: '' },
   'Layer 2 & Scaling':    { gradient: 'linear-gradient(135deg,#0a1a1a 0%,#1a3d3d 100%)', logo: '' },
   'DeFi & DEX':           { gradient: 'linear-gradient(135deg,#0a1a0a 0%,#1a3d1a 100%)', logo: '' },
@@ -324,7 +288,7 @@ function fmt(n: number) {
   return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-// ─── Chart hook (range-aware) ─────────────────────────────────────────────────
+// ─── Chart hook ───────────────────────────────────────────────────────────────
 type Range = '1D' | '3M' | '6M' | '1Y'
 const RANGE_PARAMS: Record<Range, { interval: string; range: string }> = {
   '1D': { interval: '5m',  range: '1d'  },
@@ -367,14 +331,12 @@ function useChartData(ticker: string, category: string, range: Range) {
   return { points, trend, loading, dayChange }
 }
 
-// ─── Mini Chart Component ────────────────────────────────────────────────────
+// ─── Mini Chart Component ─────────────────────────────────────────────────────
 function MiniChart({ ticker, category }: { ticker: string; category: string }) {
   const [range, setRange] = useState<Range>('6M')
   const { points, trend, loading, dayChange } = useChartData(ticker, category, range)
 
   if (category === 'geo') return null
-
-  // Wenn Daten fehlen (und nicht 1D): ausblenden
   if (!loading && !points && range !== '1D') return null
 
   const COLORS = {
@@ -383,7 +345,6 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
     flat: { stroke: '#c9a227', glow: 'rgba(201,162,39,0.14)' },
   }
 
-  // Für 1D: Farbe anhand dayChange bestimmen
   const dayTrend = dayChange == null ? 'flat' : dayChange > 0.2 ? 'up' : dayChange < -0.2 ? 'down' : 'flat'
   const col = range === '1D' ? COLORS[dayTrend] : COLORS[trend]
 
@@ -391,8 +352,6 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
     ? (((points[points.length - 1].v - points[0].v) / points[0].v) * 100).toFixed(1)
     : null
   const isUp = Number(pct) >= 0
-
-  // Bei 1D: nur Tabs + Tagesperformance-Badge, keine Chartlinie
   const showChart = range !== '1D'
 
   return (
@@ -405,20 +364,17 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
       overflow: 'hidden',
       transition: 'height 0.25s ease',
     }}>
-      {/* glow */}
       <div style={{
         position: 'absolute', inset: 0,
         background: `radial-gradient(ellipse 80% 55% at 50% 100%, ${col.glow}, transparent)`,
         pointerEvents: 'none', transition: 'background 0.4s ease',
       }} />
 
-      {/* Top row: range tabs left, pct right */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, zIndex: 3,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '8px 12px 0',
       }}>
-        {/* Range toggle */}
         <div style={{ display: 'flex', gap: 2 }}>
           {(['1D', '3M', '6M', '1Y'] as Range[]).map(r => (
             <button
@@ -441,7 +397,6 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
           ))}
         </div>
 
-        {/* Performance: bei 1D → Tages-Badge, sonst Periodenperformance */}
         {loading ? (
           <div style={{
             width: 48, height: 10, borderRadius: 3,
@@ -450,9 +405,7 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
             animation: 'shimmer 1.4s ease infinite',
           }} />
         ) : range === '1D' && dayChange != null ? (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-          }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <div style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: 7, letterSpacing: 2, color: 'rgba(255,255,255,0.35)',
@@ -486,7 +439,6 @@ function MiniChart({ ticker, category }: { ticker: string; category: string }) {
         ) : null}
       </div>
 
-      {/* Chart oder Skeleton – nur wenn nicht 1D */}
       {showChart && (
         loading ? (
           <div style={{
@@ -588,7 +540,6 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
   return (
     <article className="ac-card" style={{ animationDelay: `${idx * 0.07}s` }}>
 
-      {/* ── Bild-Header ─────────────────────────────────────────── */}
       <div className="ac-img-wrap">
         {cat === 'crypto' ? (
           <div style={{
@@ -597,7 +548,6 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             position: 'relative',
           }}>
-            {/* subtle hex grid pattern */}
             <div style={{ position: 'absolute', inset: 0, opacity: 0.06, backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
             {CRYPTO_BRAND[a.sector ?? '']?.logo ? (
               <img
@@ -622,18 +572,15 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         )}
         <div className="ac-overlay" />
 
-        {/* Rating-Badge */}
         <div className="ac-badge" style={{ background: rc.bg, color: rc.text }}>
           <span>{rc.icon}</span>
           <span>{a.rating}</span>
         </div>
 
-        {/* Kategorie-Badge oben links */}
         <div className="ac-cat-badge" style={{ color: catColor, borderColor: `${catColor}55`, background: `${catColor}18` }}>
           {CAT_LABELS[cat] ?? cat}
         </div>
 
-        {/* Live-Indikator wenn Markt offen (nur Equity) */}
         {isOpen && (cat === 'equity' || cat === 'crypto') && (
           <div className="ac-live">
             <span className="ac-live-dot" />
@@ -641,7 +588,6 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
           </div>
         )}
 
-        {/* Ticker + Titel auf dem Bild */}
         <div className="ac-co-wrap">
           <div className="ac-ticker">{a.ticker}</div>
           <h2 className="ac-co">{a.title}</h2>
@@ -649,12 +595,10 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         </div>
       </div>
 
-      {/* ── Chart (klar getrennt vom Bild) ──────────────────────── */}
       <MiniChart ticker={a.ticker} category={cat} />
 
       {(cat === 'equity' || cat === 'crypto') && (displayPrice || a.price_target) && (
         <div className="ac-prices">
-          {/* Kurs → Ziel flow */}
           <div className="ac-price-flow">
             {displayPrice != null && (
               <div className="ac-price-cell">
@@ -683,7 +627,6 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
             )}
           </div>
 
-          {/* Upside — prominent rechts */}
           {displayUpside != null && (
             <>
               <div className="ac-price-separator" />
@@ -698,7 +641,6 @@ function AnalysisCard({ a, idx }: { a: Analysis; idx: number }) {
         </div>
       )}
 
-      {/* ── Body ────────────────────────────────────────────────── */}
       <div className="ac-body">
         <ul className="ac-checks">
           {checks.slice(0, 3).map((c, i) => (
@@ -754,10 +696,10 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
     : analyses.filter(a => (a.category ?? 'equity') === activeTab)
 
   const TABS: { key: 'all' | 'equity' | 'geo' | 'crypto'; label: string; color: string }[] = [
-    { key: 'all',    label: 'ALL',              color: '#94a3b8' },
-    { key: 'equity', label: 'EQUITY RESEARCH',  color: '#c9a227' },
+    { key: 'all',    label: 'ALL',                 color: '#94a3b8' },
+    { key: 'equity', label: 'EQUITY RESEARCH',     color: '#c9a227' },
     { key: 'geo',    label: 'MACRO / GEOPOLITICS', color: '#38bdf8' },
-    { key: 'crypto', label: 'DIGITAL ASSETS',   color: '#f97316' },
+    { key: 'crypto', label: 'DIGITAL ASSETS',      color: '#f97316' },
   ]
 
   if (!analyses || analyses.length === 0) {
@@ -786,12 +728,8 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
           grid-template-columns: repeat(4, 1fr);
           gap: 20px;
         }
-        @media (max-width: 1200px) {
-          .ac-grid { grid-template-columns: repeat(3, 1fr) !important; }
-        }
-        @media (max-width: 860px) {
-          .ac-grid { grid-template-columns: repeat(2, 1fr) !important; }
-        }
+        @media (max-width: 1200px) { .ac-grid { grid-template-columns: repeat(3, 1fr) !important; } }
+        @media (max-width: 860px)  { .ac-grid { grid-template-columns: repeat(2, 1fr) !important; } }
 
         .ac-card {
           background: #fff;
@@ -809,124 +747,66 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
           border-color: rgba(201,162,39,0.4);
         }
 
-        .ac-img-wrap {
-          position: relative; height: 186px;
-          overflow: hidden; background: #0d1f38; flex-shrink: 0;
-        }
+        .ac-img-wrap { position:relative; height:186px; overflow:hidden; background:#0d1f38; flex-shrink:0; }
         .ac-img { width:100%; height:100%; object-fit:cover; transition:transform .5s ease; }
         .ac-card:hover .ac-img { transform: scale(1.05); }
-        .ac-img-fallback {
-          width:100%; height:100%;
-          background: linear-gradient(135deg, #0d1f38 0%, #1e3a5f 55%, #0a2440 100%);
-        }
+        .ac-img-fallback { width:100%; height:100%; background:linear-gradient(135deg,#0d1f38 0%,#1e3a5f 55%,#0a2440 100%); }
         .ac-overlay {
-          position: absolute; inset: 0;
-          background: linear-gradient(to bottom,
-            rgba(5,14,30,.05) 0%, rgba(5,14,30,.22) 45%,
-            rgba(5,14,30,.82) 78%, rgba(5,14,30,.96) 100%);
+          position:absolute; inset:0;
+          background:linear-gradient(to bottom, rgba(5,14,30,.05) 0%, rgba(5,14,30,.22) 45%, rgba(5,14,30,.82) 78%, rgba(5,14,30,.96) 100%);
         }
 
         .ac-badge {
-          position: absolute; top: 12px; right: 12px;
-          display: flex; align-items: center; gap: 5px;
-          padding: 4px 11px;
-          font-size: 9px; letter-spacing: 2px;
-          text-transform: uppercase; font-weight: 600;
-          font-family: 'DM Mono', monospace;
+          position:absolute; top:12px; right:12px;
+          display:flex; align-items:center; gap:5px;
+          padding:4px 11px;
+          font-size:9px; letter-spacing:2px; text-transform:uppercase; font-weight:600;
+          font-family:'DM Mono',monospace;
         }
-
-        /* Kategorie-Badge oben links */
         .ac-cat-badge {
-          position: absolute; top: 12px; left: 12px;
-          font-size: 7px; letter-spacing: 2.5px;
-          text-transform: uppercase;
-          padding: 3px 8px;
-          border: 1px solid;
-          font-family: 'DM Mono', monospace;
+          position:absolute; top:12px; left:12px;
+          font-size:7px; letter-spacing:2.5px; text-transform:uppercase;
+          padding:3px 8px; border:1px solid;
+          font-family:'DM Mono',monospace;
         }
-
         .ac-live {
-          position: absolute; top: 36px; left: 12px;
-          display: flex; align-items: center; gap: 6px;
-          font-size: 7px; letter-spacing: 3px;
-          color: rgba(255,255,255,.55); text-transform: uppercase;
-          font-family: 'DM Mono', monospace;
+          position:absolute; top:36px; left:12px;
+          display:flex; align-items:center; gap:6px;
+          font-size:7px; letter-spacing:3px;
+          color:rgba(255,255,255,.55); text-transform:uppercase;
+          font-family:'DM Mono',monospace;
         }
-        .ac-live-dot {
-          width:5px; height:5px; border-radius:50%;
-          background:#22c55e; flex-shrink:0;
-          animation: livePulse 2s ease infinite;
-        }
+        .ac-live-dot { width:5px; height:5px; border-radius:50%; background:#22c55e; flex-shrink:0; animation:livePulse 2s ease infinite; }
 
         .ac-co-wrap { position:absolute; bottom:0; left:0; right:0; padding:14px 18px 13px; }
         .ac-ticker  { font-size:8px; letter-spacing:4px; color:#c9a227; text-transform:uppercase; margin-bottom:5px; opacity:.9; font-family:'DM Mono',monospace; }
-        .ac-co {
-          font-family:'Cormorant Garamond',serif;
-          font-size:20px; font-weight:600; color:#fff;
-          line-height:1.2; margin:0 0 4px;
-          text-shadow:0 2px 10px rgba(0,0,0,.45);
-        }
+        .ac-co      { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; color:#fff; line-height:1.2; margin:0 0 4px; text-shadow:0 2px 10px rgba(0,0,0,.45); }
         .ac-sector-lbl { font-size:7px; letter-spacing:2px; color:rgba(255,255,255,.4); text-transform:uppercase; font-family:'DM Mono',monospace; }
 
-        .ac-prices {
-          display: flex;
-          align-items: stretch;
-          background: #f8fafc;
-          border-top: 1px solid #f1f5f9;
-          border-bottom: 1px solid #f1f5f9;
-          padding: 10px 16px;
-          gap: 0;
-        }
-        .ac-price-flow {
-          display: flex; align-items: center; gap: 8px; flex: 1;
-        }
-        .ac-price-cell { padding: 0; border-right: none; }
-        .ac-price-label {
-          font-size: 8px; letter-spacing: 2px; color: #94a3b8;
-          text-transform: uppercase;
-          display: flex; align-items: center; gap: 4px; margin-bottom: 3px;
-          font-family: 'DM Mono', monospace;
-        }
-        .ac-price-dot  { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-        .ac-loading    { font-size: 8px; color: #94a3b8; }
-        .ac-price-val  {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 17px; font-weight: 600; color: #0f172a; line-height: 1;
-        }
-        .ac-price-val.gold { color: #c9a227; }
-        .ac-price-arrow {
-          font-size: 17px; color: #c9a227; flex-shrink: 0; margin: 0 6px;
-          align-self: flex-end; padding-bottom: 1px; font-weight: 600;
-        }
-        .ac-price-separator { width: 1px; background: #e2e8f0; margin: 0 12px; align-self: stretch; flex-shrink: 0; }
-        .ac-upside-block {
-          display: flex; flex-direction: column; justify-content: center;
-          padding-left: 12px;
-        }
-        .ac-upside-val {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 30px; font-weight: 700; line-height: 1; letter-spacing: -0.02em;
-        }
-        .ac-upside-val.up { color: #15803d; }
-        .ac-upside-val.dn { color: #b91c1c; }
-        .ac-upside-lbl {
-          font-size: 7px; letter-spacing: 2px; color: #94a3b8;
-          text-transform: uppercase; font-family: 'DM Mono', monospace; margin-top: 2px;
-        }
+        .ac-prices { display:flex; align-items:stretch; background:#f8fafc; border-top:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9; padding:10px 16px; gap:0; }
+        .ac-price-flow { display:flex; align-items:center; gap:8px; flex:1; }
+        .ac-price-cell { padding:0; border-right:none; }
+        .ac-price-label { font-size:8px; letter-spacing:2px; color:#94a3b8; text-transform:uppercase; display:flex; align-items:center; gap:4px; margin-bottom:3px; font-family:'DM Mono',monospace; }
+        .ac-price-dot   { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+        .ac-loading     { font-size:8px; color:#94a3b8; }
+        .ac-price-val   { font-family:'Cormorant Garamond',serif; font-size:17px; font-weight:600; color:#0f172a; line-height:1; }
+        .ac-price-val.gold { color:#c9a227; }
+        .ac-price-arrow { font-size:17px; color:#c9a227; flex-shrink:0; margin:0 6px; align-self:flex-end; padding-bottom:1px; font-weight:600; }
+        .ac-price-separator { width:1px; background:#e2e8f0; margin:0 12px; align-self:stretch; flex-shrink:0; }
+        .ac-upside-block { display:flex; flex-direction:column; justify-content:center; padding-left:12px; }
+        .ac-upside-val  { font-family:'Cormorant Garamond',serif; font-size:30px; font-weight:700; line-height:1; letter-spacing:-0.02em; }
+        .ac-upside-val.up { color:#15803d; }
+        .ac-upside-val.dn { color:#b91c1c; }
+        .ac-upside-lbl  { font-size:7px; letter-spacing:2px; color:#94a3b8; text-transform:uppercase; font-family:'DM Mono',monospace; margin-top:2px; }
 
-        .ac-body { padding:12px 16px 14px; display:flex; flex-direction:column; flex:1; }
-
-        .ac-checks { list-style:none; margin:0 0 10px; padding:0; display:flex; flex-direction:column; gap:7px; flex:1; }
-        .ac-check-item {
-          display:flex; align-items:flex-start; gap:10px;
-          font-size:10px; color:#334155; line-height:1.5;
-          font-family:'DM Mono',monospace;
-        }
+        .ac-body    { padding:12px 16px 14px; display:flex; flex-direction:column; flex:1; }
+        .ac-checks  { list-style:none; margin:0 0 10px; padding:0; display:flex; flex-direction:column; gap:7px; flex:1; }
+        .ac-check-item { display:flex; align-items:flex-start; gap:10px; font-size:10px; color:#334155; line-height:1.5; font-family:'DM Mono',monospace; }
         .ac-check-icon { font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px; }
 
         .ac-divider { height:1px; background:#f1f5f9; margin-bottom:10px; }
 
-        .ac-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        .ac-footer  { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
         .ac-btn {
           display:inline-flex; align-items:center; gap:8px;
           padding:11px 20px; background:#0a1628; color:#c9a227;
@@ -935,67 +815,41 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
           text-decoration:none; border:1px solid rgba(201,162,39,0.35); cursor:pointer; font-weight:700;
           transition:background .2s, color .2s, transform .15s, box-shadow .2s;
         }
-        .ac-btn:hover { background:#c9a227; color:#0a1628; transform:translateY(-2px); box-shadow: 0 6px 20px rgba(201,162,39,0.25); border-color:#c9a227; }
+        .ac-btn:hover { background:#c9a227; color:#0a1628; transform:translateY(-2px); box-shadow:0 6px 20px rgba(201,162,39,0.25); border-color:#c9a227; }
         .ac-btn-ghost { background:#f8fafc; color:#cbd5e1; border:1px solid #e2e8f0; cursor:default; font-weight:500; }
         .ac-btn-ghost:hover { background:#f8fafc; color:#cbd5e1; transform:none; box-shadow:none; border-color:#e2e8f0; }
 
         .ac-meta      { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        .ac-meta-tag  {
-          font-size:8px; letter-spacing:1px; color:#94a3b8;
-          padding:3px 7px; background:#f1f5f9; border:1px solid #e2e8f0;
-          text-transform:uppercase; font-family:'DM Mono',monospace;
-        }
+        .ac-meta-tag  { font-size:8px; letter-spacing:1px; color:#94a3b8; padding:3px 7px; background:#f1f5f9; border:1px solid #e2e8f0; text-transform:uppercase; font-family:'DM Mono',monospace; }
         .ac-meta-date { font-size:8px; color:#cbd5e1; letter-spacing:1px; font-family:'DM Mono',monospace; }
 
-        /* Filter Tabs */
-        .ac-tabs {
-          display: flex; gap: 6px; margin-bottom: 28px;
-          padding-bottom: 0;
-        }
+        .ac-tabs { display:flex; gap:6px; margin-bottom:28px; padding-bottom:0; }
         .ac-tab {
-          font-family: 'DM Mono', monospace;
-          font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
-          background: #f1f5f9; border: 1px solid #e2e8f0;
-          color: #94a3b8; padding: 9px 18px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: flex; align-items: center; gap: 7px;
+          font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase;
+          background:#f1f5f9; border:1px solid #e2e8f0; color:#94a3b8; padding:9px 18px;
+          cursor:pointer; transition:all 0.2s ease; display:flex; align-items:center; gap:7px;
         }
-        .ac-tab:hover {
-          background: #e8edf5;
-          color: #475569;
-          border-color: #cbd5e1;
-        }
-        .ac-tab-active {
-          background: var(--tab-color, #94a3b8) !important;
-          border-color: var(--tab-color, #94a3b8) !important;
-          color: #fff !important;
-        }
-        .ac-tab-active .ac-tab-count { opacity: 0.75; }
-        .ac-tab-count {
-          font-size: 8px; opacity: 0.55; letter-spacing: 1px;
-        }
+        .ac-tab:hover { background:#e8edf5; color:#475569; border-color:#cbd5e1; }
+        .ac-tab-active { background:var(--tab-color,#94a3b8) !important; border-color:var(--tab-color,#94a3b8) !important; color:#fff !important; }
+        .ac-tab-active .ac-tab-count { opacity:0.75; }
+        .ac-tab-count { font-size:8px; opacity:0.55; letter-spacing:1px; }
 
         @media (max-width:640px) {
           .ac-grid { grid-template-columns:1fr !important; gap:14px; }
-          .ac-prices { grid-template-columns:1fr 1fr; }
-          .ac-price-cell:nth-child(3) { grid-column:1/-1; border-top:1px solid #f1f5f9; border-right:none; }
           .ac-footer { flex-direction:column; align-items:flex-start; }
-          .ac-tabs { gap: 0; }
-          .ac-tab { padding: 10px 14px; font-size: 8px; }
+          .ac-tabs { gap:0; }
+          .ac-tab  { padding:10px 14px; font-size:8px; }
         }
       `}</style>
 
-      {/* ── Filter Tabs ── */}
+      {/* ── Filter Tabs + Button ── */}
       <div className="ac-tabs" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: 6 }}>
           {TABS.map(t => (
             <button
               key={t.key}
               className={"ac-tab" + (activeTab === t.key ? " ac-tab-active" : "")}
-              style={{
-                '--tab-color': t.color,
-              } as React.CSSProperties}
+              style={{ '--tab-color': t.color } as React.CSSProperties}
               onClick={() => setActiveTab(t.key)}
             >
               {t.label}
@@ -1003,8 +857,10 @@ export default function AnalysisCardsGrid({ analyses }: { analyses: Analysis[] }
             </button>
           ))}
         </div>
+
+        {/* ── AKTIEN ANALYSIEREN Button → deine Streamlit App ── */}
         <a
-          href="https://finanzbot.streamlit.app"
+          href="https://aktien-tool-gp4cluvfftrgceyurfr3sg.streamlit.app"
           target="_blank"
           rel="noopener noreferrer"
           className="ac-btn"
